@@ -1,0 +1,15 @@
+{
+  "0": {
+    "_meta": {
+      "title": "细节增强 · 保真（原生解析式模块，不经 ComfyUI）"
+    },
+    "class_type": "CanvasFaithfulEnhanceNative",
+    "inputs": {
+      "image": "example.png",
+      "detail": 0.2,
+      "clarity": 0.04,
+      "skin_protect": 0.55,
+      "short_edge": 0
+    }
+  }
+}

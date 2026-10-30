@@ -1,0 +1,93 @@
+{
+  "title": "超清 · SeedVR2",
+  "fields": [
+    {
+      "id": "f_image",
+      "node": "12",
+      "input": "image",
+      "name": "图片",
+      "type": "image",
+      "default": "",
+      "min": null,
+      "max": null,
+      "step": null,
+      "options": [],
+      "bind_prompt": null
+    },
+    {
+      "id": "f_resolution",
+      "node": "11",
+      "input": "resolution",
+      "name": "目标分辨率",
+      "type": "dropdown",
+      "default": "1440",
+      "min": null,
+      "max": null,
+      "step": null,
+      "options": [
+        "1080",
+        "1440",
+        "2160"
+      ],
+      "bind_prompt": null
+    },
+    {
+      "id": "f_seed",
+      "node": "11",
+      "input": "seed",
+      "name": "随机种子",
+      "type": "number",
+      "default": 678864249,
+      "min": 0,
+      "max": 9007199254740991,
+      "step": 1,
+      "options": [],
+      "bind_prompt": null,
+      "random_enabled": true
+    },
+    {
+      "id": "f_sharpen_pre",
+      "node": "7",
+      "input": "amount",
+      "name": "前置锐化",
+      "type": "number",
+      "default": 0.8,
+      "min": 0.0,
+      "max": 2.0,
+      "step": 0.05,
+      "options": [],
+      "bind_prompt": null
+    },
+    {
+      "id": "f_sharpen_post",
+      "node": "15",
+      "input": "amount",
+      "name": "后置锐化",
+      "type": "number",
+      "default": 0.3,
+      "min": 0.0,
+      "max": 2.0,
+      "step": 0.05,
+      "options": [],
+      "bind_prompt": null
+    }
+  ],
+  "mini_cards": {
+    "prompt": {
+      "x": 24,
+      "y": 30
+    },
+    "image": {
+      "x": 24,
+      "y": 210
+    },
+    "custom": {
+      "x": 280,
+      "y": 78
+    },
+    "output": {
+      "x": 540,
+      "y": 120
+    }
+  }
+}

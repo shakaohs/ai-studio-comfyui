@@ -1,0 +1,117 @@
+{
+  "15": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "example.png",
+      "upload": "image"
+    },
+    "_meta": {
+      "title": "输入图片"
+    }
+  },
+  "7": {
+    "class_type": "ImageCASharpening+",
+    "inputs": {
+      "image": [
+        "15",
+        0
+      ],
+      "amount": 0.8
+    },
+    "_meta": {
+      "title": "前置锐化"
+    }
+  },
+  "23": {
+    "class_type": "SeedVR2LoadDiTModel",
+    "inputs": {
+      "model": "seedvr2_ema_3b_fp8_e4m3fn.safetensors",
+      "device": "cuda:0",
+      "blocks_to_swap": 36,
+      "swap_io_components": true,
+      "offload_device": "cpu",
+      "cache_model": false,
+      "attention_mode": "sdpa"
+    },
+    "_meta": {
+      "title": "SeedVR2 DiT"
+    }
+  },
+  "24": {
+    "class_type": "SeedVR2LoadVAEModel",
+    "inputs": {
+      "model": "ema_vae_fp16.safetensors",
+      "device": "cuda:0",
+      "encode_tiled": true,
+      "encode_tile_size": 1024,
+      "encode_tile_overlap": 128,
+      "decode_tiled": true,
+      "decode_tile_size": 1024,
+      "decode_tile_overlap": 128,
+      "tile_debug": "false",
+      "offload_device": "cpu",
+      "cache_model": false
+    },
+    "_meta": {
+      "title": "SeedVR2 VAE"
+    }
+  },
+  "11": {
+    "class_type": "SeedVR2VideoUpscaler",
+    "inputs": {
+      "image": [
+        "7",
+        0
+      ],
+      "dit": [
+        "23",
+        0
+      ],
+      "vae": [
+        "24",
+        0
+      ],
+      "seed": 42,
+      "resolution": 2160,
+      "max_resolution": 0,
+      "batch_size": 5,
+      "uniform_batch_size": false,
+      "color_correction": "lab",
+      "temporal_overlap": 0,
+      "prepend_frames": 0,
+      "input_noise_scale": 0,
+      "latent_noise_scale": 0,
+      "offload_device": "cpu",
+      "enable_debug": false
+    },
+    "_meta": {
+      "title": "SeedVR2 放大"
+    }
+  },
+  "26": {
+    "class_type": "ImageCASharpening+",
+    "inputs": {
+      "image": [
+        "11",
+        0
+      ],
+      "amount": 0.3
+    },
+    "_meta": {
+      "title": "后置锐化"
+    }
+  },
+  "13": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": [
+        "26",
+        0
+      ],
+      "filename_prefix": "canvas/4k"
+    },
+    "_meta": {
+      "title": "保存"
+    }
+  }
+}

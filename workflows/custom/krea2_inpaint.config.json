@@ -1,0 +1,115 @@
+{
+  "title": "局部重绘 · 修手/修细节",
+  "fields": [
+    {
+      "id": "f_image",
+      "node": "10",
+      "input": "image",
+      "name": "原图",
+      "type": "image",
+      "default": "",
+      "min": null,
+      "max": null,
+      "step": null,
+      "options": [],
+      "bind_prompt": null
+    },
+    {
+      "id": "f_mask",
+      "node": "11",
+      "input": "image",
+      "name": "蒙版（白=要重绘）",
+      "type": "image",
+      "default": "",
+      "min": null,
+      "max": null,
+      "step": null,
+      "options": [],
+      "bind_prompt": null
+    },
+    {
+      "id": "f_prompt",
+      "node": "4",
+      "input": "text",
+      "name": "提示词",
+      "type": "textarea",
+      "default": "",
+      "min": null,
+      "max": null,
+      "step": null,
+      "options": [],
+      "bind_prompt": true
+    },
+    {
+      "id": "f_denoise",
+      "node": "7",
+      "input": "denoise",
+      "name": "重绘强度",
+      "type": "number",
+      "default": 1.0,
+      "min": 0.3,
+      "max": 1.0,
+      "step": 0.05,
+      "options": [],
+      "bind_prompt": null
+    },
+    {
+      "id": "f_grow",
+      "node": "13",
+      "input": "grow_mask_by",
+      "name": "蒙版扩张",
+      "type": "number",
+      "default": 16,
+      "min": 0,
+      "max": 64,
+      "step": 8,
+      "options": [],
+      "bind_prompt": null
+    },
+    {
+      "id": "f_steps",
+      "node": "7",
+      "input": "steps",
+      "name": "步数",
+      "type": "number",
+      "default": 8,
+      "min": 1,
+      "max": 30,
+      "step": 1,
+      "options": [],
+      "bind_prompt": null
+    },
+    {
+      "id": "f_seed",
+      "node": "7",
+      "input": "seed",
+      "name": "随机种子",
+      "type": "number",
+      "default": 42,
+      "min": 0,
+      "max": 9007199254740991,
+      "step": 1,
+      "options": [],
+      "bind_prompt": null,
+      "random_enabled": true
+    }
+  ],
+  "mini_cards": {
+    "prompt": {
+      "x": 24,
+      "y": 30
+    },
+    "image": {
+      "x": 24,
+      "y": 210
+    },
+    "custom": {
+      "x": 280,
+      "y": 78
+    },
+    "output": {
+      "x": 540,
+      "y": 120
+    }
+  }
+}

@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/static/images/logo.png" type="image/png">
+    <title>Z-IMAGE | 极简影像重塑</title>
+    <script>
+        (function(){
+            try {
+                var theme = localStorage.getItem('studio_theme') || localStorage.getItem('canvas_theme') || 'light';
+                if(theme === 'dark') {
+                    document.documentElement.classList.add('studio-theme-dark');
+                    document.documentElement.classList.add('theme-dark');
+                }
+            } catch(e) {}
+        })();
+    </script>
+    <script src="/static/vendor/js/tailwindcss-cdn.js?v=2026.08.28.1793341124"></script>
+    <script src="/static/vendor/js/lucide.js?v=2026.08.28.1793341124"></script>
+    <script src="/static/js/theme.js?v=2026.08.28.1793341123"></script>
+    <script src="/static/js/i18n.js?v=2026.08.28.1793341123"></script>
+    <script src="/static/js/image-preview.js?v=2026.08.28.1793341123"></script>
+    <script src="/static/js/history-bulk-manager.js?v=2026.08.28.1793341123"></script>
+    <script src="/static/js/save-master.js?v=2026.08.28.1793341123"></script>
+    <style>
+        @import url('/static/vendor/css/fonts.css?v=2026.08.28.1793341124');
+
+        :root {
+            --accent: #111827;
+            --bg: #f9fafb;
+            --card: #ffffff;
+            --easing: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* --- 极简悬浮浅灰滚动条 (无底色/左移) --- */
+        *::-webkit-scrollbar {
+            width: 10px !important;
+            height: 10px !important;
+            background: transparent !important;
+        }
+
+        *::-webkit-scrollbar-track {
+            background: transparent !important;
+            border: none !important;
+        }
+
+        *::-webkit-scrollbar-thumb {
+            background-color: #d8d8d8 !important;
+            border: 3px solid transparent !important;
+            border-right-width: 5px !important;
+            /* 增加右侧间距，使滚动条向左位移 */
+            background-clip: padding-box !important;
+            border-radius: 10px !important;
+        }
+
+        *::-webkit-scrollbar-thumb:hover {
+            background-color: #c0c0c0 !important;
+        }
+
+        *::-webkit-scrollbar-corner {
+            background: transparent !important;
+        }
+
+        * {
+            scrollbar-width: thin !important;
+            scrollbar-color: #d8d8d8 transparent !important;
+        }
+
+        body {
+            background-color: var(--bg);
+            font-family: 'Inter', -apple-system, sans-serif;
+            color: var(--accent);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container-box {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 40px;
+            margin-top: 50px;
+        }
+
+        /* 统一组件风格 */
+        .glass-btn {
+            background: #111827;
+            transition: all 0.3s var(--easing);
+        }
+
+        .glass-btn:hover {
+            background: #000;
+            transform: translateY(-1px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+        }
+
+        .glass-btn:active {
+            transform: scale(0.98);
+        }
+
+        .upload-item {
+            background: var(--card);
+            border: 1px dashed #e2e8f0;
+            transition: all 0.4s var(--easing);
+        }
+
+        .upload-item:hover {
+            border-color: #000;
+            background: #fff;
+            transform: translateY(-2px);
+        }
+
+        .result-frame {
+            background: #ffffff;
+            border-radius: 32px;
+            border: 1px solid #f1f5f9;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.02);
+        }
+
+        .masonry-item {
+            break-inside: avoid;
+            margin-bottom: 1.25rem;
+            background: #fff;
+            border: 1px solid #f1f5f9;
+            border-radius: 24px;
+            overflow: hidden;
+            transition: all 0.5s var(--easing);
+        }
+
+        .masonry-item:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+        }
+
+        /* 统一精致 Range 设计 */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: transparent;
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 2px;
+            background: #e5e5e5;
+            border-radius: 1px;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 14px;
+            width: 14px;
+            border-radius: 50%;
+            background: var(--accent);
+            margin-top: -6px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s var(--easing);
+            cursor: pointer;
+        }
+
+        .masonry-grid {
+            columns: 2;
+            column-gap: 1.25rem;
+        }
+
+        @media (min-width: 768px) {
+            .masonry-grid {
+                columns: 4;
+            }
+        }
+
+        @keyframes b-loading {
+            0% {
+                transform: scale(1);
+                background: #000;
+            }
+
+            50% {
+                transform: scale(1.15);
+                background: #444;
+            }
+
+            100% {
+                transform: scale(1);
+                background: #000;
+            }
+        }
+
+        .loading-box {
+            width: 10px;
+            height: 10px;
+            animation: b-loading 1s infinite var(--easing);
+        }
+
+        .ios-switch input:checked+.ios-slider {
+            background: #000;
+        }
+
+        .ios-slider:before {
+            content: "";
+            position: absolute;
+            height: 24px;
+            width: 24px;
+            left: 2px;
+            bottom: 2px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.3s var(--easing);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+        }
+
+        input:checked+.ios-slider:before {
+            transform: translateX(20px);
+        }
+
+        .engine-switch {
+            background: #f8fafc;
+            border: 1px solid #edf2f7;
+            border-radius: 999px;
+            padding: 3px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2px;
+        }
+
+        .engine-btn {
+            border-radius: 999px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            color: #64748b;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: .02em;
+            transition: all .25s var(--easing);
+            cursor: pointer;
+        }
+
+        .engine-btn.active {
+            background: #fff;
+            color: #111827;
+            box-shadow: 0 1px 3px rgba(15,23,42,.08);
+        }
+
+        .engine-btn:not(.active):hover {
+            color: #111827;
+            background: rgba(0,0,0,.04);
+        }
+
+        .engine-panel {
+            background: #fff;
+            border: 1px solid #edf0f3;
+            border-radius: 24px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .engine-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #94a3b8;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: .04em;
+        }
+
+        /* ===== 素材库侧栏 ===== */
+        body { transition: padding-right .28s cubic-bezier(.4, 0, .2, 1); }
+
+        .lib-toggle {
+            position: fixed;
+            right: 0;
+            top: 34%;
+            transform: translateY(-50%);
+            z-index: 60;
+            background: #111;
+            color: #fff;
+            border-radius: 14px 0 0 14px;
+            padding: 16px 9px;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: .3em;
+            writing-mode: vertical-rl;
+            cursor: pointer;
+            box-shadow: -6px 0 24px rgba(0, 0, 0, .16);
+            transition: background .2s;
+        }
+
+        .lib-toggle:hover { background: #000; }
+
+        .lib-panel {
+            position: fixed;
+            right: 0;
+            top: 0;
+            height: 100vh;
+            width: 308px;
+            background: #fff;
+            z-index: 61;
+            border-left: 1px solid rgba(0, 0, 0, .06);
+            box-shadow: -18px 0 50px rgba(0, 0, 0, .10);
+            display: flex;
+            flex-direction: column;
+            transform: translateX(105%);
+            transition: transform .28s cubic-bezier(.4, 0, .2, 1);
+        }
+
+        .lib-panel.open { transform: translateX(0); }
+
+        .lib-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 16px 10px;
+        }
+
+        .lib-title {
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: .3em;
+            text-transform: uppercase;
+        }
+
+        .lib-body { flex: 1; overflow-y: auto; padding: 0 14px 20px; }
+
+        .lib-cat {
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: .22em;
+            color: #9ca3af;
+            text-transform: uppercase;
+            margin: 16px 4px 8px;
+        }
+
+        .lib-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+        .lib-item {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #f4f4f5;
+            aspect-ratio: 1 / 1;
+            cursor: grab;
+            border: 1px solid transparent;
+            transition: border-color .18s, transform .18s, box-shadow .18s;
+        }
+
+        .lib-item:hover {
+            border-color: #111;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, .10);
+        }
+
+        .lib-item:active { cursor: grabbing; }
+
+        .lib-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            pointer-events: none;
+        }
+
+        .lib-item .lib-name {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: 4px 6px;
+            font-size: 8px;
+            font-weight: 600;
+            color: #fff;
+            background: linear-gradient(transparent, rgba(0, 0, 0, .7));
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .lib-empty {
+            font-size: 11px;
+            color: #9ca3af;
+            text-align: center;
+            padding: 46px 10px;
+            line-height: 1.9;
+        }
+
+        .lib-loading {
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #111, transparent);
+            background-size: 40% 100%;
+            background-repeat: no-repeat;
+            animation: libslide 1.1s linear infinite;
+        }
+
+        @keyframes libslide {
+            0% { background-position: -40% 0; }
+            100% { background-position: 140% 0; }
+        }
+
+        @media (min-width: 1100px) {
+            body.lib-open { padding-right: 308px; }
+        }
+        .mode-pill { padding: 9px 10px; border-radius: 10px; font-size: 10px; font-weight: 800; letter-spacing: .06em; color: #6b7280; background: transparent; border: 0; cursor: pointer; transition: all .18s; }
+        .mode-pill.active { background: #111; color: #fff; box-shadow: 0 6px 16px rgba(0,0,0,.16); }
+        .mode-pill:hover:not(.active) { color: #111; }
+    </style>
+    <link rel="stylesheet" href="/static/css/theme.css?v=2026.08.28.1793341122">
+</head>
+
+<body class="selection:bg-black selection:text-white">
+
+    <div class="container-box">
+        <header class="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+            <div class="space-y-1">
+                <h1 class="text-4xl font-extrabold tracking-[-0.05em] flex items-center">
+                    Z IMAGE<span class="text-base mt-3 ml-1">®</span>
+                </h1>
+                <p class="text-[10px] font-bold uppercase tracking-[0.5em] text-gray-400" data-i18n="nav.enhance">Computational Photography
+                    Archive</p>
+            </div>
+            <nav class="flex gap-8 text-[11px] font-bold uppercase tracking-widest text-gray-500">
+                <span class="text-black border-b-2 border-black pb-1" data-i18n="nav.enhance">Enhance</span>
+            </nav>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+            <div class="lg:col-span-4 space-y-10">
+                <section class="group">
+                    <h3 class="text-[9px] font-black uppercase tracking-[0.3em] mb-5 text-gray-400">01. <span data-i18n="studio.inputSource">Input Source</span>
+                    </h3>
+                    <div id="dropzone"
+                        class="upload-item relative overflow-hidden rounded-2xl aspect-[4/3] flex flex-col items-center justify-center cursor-pointer">
+                        <input type="file" id="fileInput" class="hidden" accept="image/*">
+
+                        <div id="uploadContent" class="text-center space-y-4">
+                            <div
+                                class="w-14 h-14 rounded-full border border-gray-200 bg-white flex items-center justify-center mx-auto group-hover:bg-black group-hover:text-white group-hover:border-black transition-all duration-500">
+                                <i data-lucide="arrow-up" class="w-5 h-5"></i>
+                            </div>
+                            <p class="text-[11px] font-bold uppercase tracking-tight" data-i18n="studio.dropImage">Drop image here</p>
+                        </div>
+
+                        <img id="previewImg" class="hidden absolute inset-0 w-full h-full object-cover">
+
+                        <div id="changeOverlay"
+                            class="hidden absolute inset-0 bg-black/10 backdrop-blur-sm items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                            <span
+                                class="bg-white px-5 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-2xl" data-i18n="studio.change">Change</span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="space-y-10">
+                    <h3 class="text-[9px] font-black uppercase tracking-[0.3em] text-gray-400">02. <span data-i18n="studio.parameters">Parameters</span></h3>
+
+                    <!-- Local Controls -->
+                    <div id="localControls" class="space-y-10">
+                        <div>
+                            <div class="grid grid-cols-2 gap-1 p-1 bg-gray-100 rounded-xl">
+                                <button type="button" class="mode-pill active" data-enhance-mode="faithful" data-i18n="studio.modeFaithful">保真增强</button>
+                                <button type="button" class="mode-pill" data-enhance-mode="generative" data-i18n="studio.modeGenerative">生成式修复</button>
+                            </div>
+                            <p id="modeHint" class="text-[9px] leading-relaxed text-gray-400 mt-3" data-i18n="studio.modeFaithfulHint">
+                                不走生成模型：皱纹、褶皱、毛孔、发丝全部沿用原图，脸和画风零改动</p>
+                        </div>
+
+                        <div id="faithParams" class="space-y-10">
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-end">
+                                    <label class="text-xs font-bold uppercase tracking-tight text-gray-800" data-i18n="studio.detailStrength">Detail Strength</label>
+                                    <span id="detailVal" class="font-mono text-xs font-bold">0.20</span>
+                                </div>
+                                <input type="range" id="detailSlider" min="0" max="1.5" step="0.01" value="0.20" class="w-full">
+                                <p class="text-[9px] leading-relaxed text-gray-400" data-i18n="studio.detailStrengthHint">
+                                    只提升原图已有细节的对比，不生成新内容。0.15–0.25 自然，超过 0.4 会出砂砾感</p>
+                            </div>
+
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-end">
+                                    <label class="text-xs font-bold uppercase tracking-tight text-gray-800" data-i18n="studio.localContrast">Local Contrast</label>
+                                    <span id="clarityVal" class="font-mono text-xs font-bold">0.04</span>
+                                </div>
+                                <input type="range" id="claritySlider" min="0" max="1" step="0.01" value="0.04" class="w-full">
+                                <p class="text-[9px] leading-relaxed text-gray-400" data-i18n="studio.localContrastHint">
+                                    中低频层次：让骨相、衣料起伏更立体。0.03–0.08 舒适，过高会显脏</p>
+                            </div>
+
+                            <div class="p-4 bg-emerald-50/70 border border-emerald-100 rounded-2xl">
+                                <p class="text-[9px] leading-relaxed text-emerald-700" data-i18n="studio.faithfulNote">
+                                    本模式不做重绘：不磨皮、不美颜、不换脸、不改风格。皮肤区会自动减淡细节，脸不会比头发衣料更硬；输出文件名带参数代号，方便人工比对。</p>
+                            </div>
+                        </div>
+
+                        <div id="genParams" class="space-y-10 hidden">
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-end">
+                                <label class="text-xs font-bold uppercase tracking-tight text-gray-800" data-i18n="studio.preSharpen">Pre-Sharpen</label>
+                                <span id="preSharpenVal" class="font-mono text-xs font-bold">0.00</span>
+                            </div>
+                            <input type="range" id="preSharpenSlider" min="0" max="1" step="0.05" value="0"
+                                class="w-full">
+                            <p class="text-[9px] leading-relaxed text-gray-400" data-i18n="studio.preSharpenHint">
+                                放大前先锐化原图：让线条先立起来。建议 0–0.25，超过 0.4 边缘会发硬、皮肤发蜡</p>
+                        </div>
+
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-end">
+                                <label class="text-xs font-bold uppercase tracking-tight text-gray-800" data-i18n="studio.sharpness">Sharpness</label>
+                                <span id="strengthVal" class="font-mono text-xs font-bold">0.10</span>
+                            </div>
+                            <input type="range" id="strengthSlider" min="0" max="0.5" step="0.01" value="0.10"
+                                class="w-full">
+                            <p class="text-[9px] leading-relaxed text-gray-400" data-i18n="studio.sharpnessHint">
+                                放大后的收尾锐化，决定画面“脆不脆”。0.05–0.12 自然，超过 0.3 会出现白边光晕</p>
+                        </div>
+
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-end">
+                                <label class="text-xs font-bold uppercase tracking-tight text-gray-800" data-i18n="studio.textureRestore">Texture Restore</label>
+                                <span id="textureVal" class="font-mono text-xs font-bold">0.35</span>
+                            </div>
+                            <input type="range" id="textureSlider" min="0" max="0.7" step="0.01" value="0.35"
+                                class="w-full">
+                            <p class="text-[9px] leading-relaxed text-gray-400" data-i18n="studio.textureRestoreHint">
+                                越高越保留原图的毛孔、皱纹和布料褶皱</p>
+                            <p class="text-[9px] leading-relaxed text-gray-400" data-i18n="studio.textureRestoreHint2">
+                                0.3–0.45 最均衡，0.5 以上接近纯放大</p>
+                        </div>
+
+                        </div>
+
+                        <div class="p-5 bg-white border border-gray-200/50 rounded-2xl shadow-sm">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-4">
+                                    <div class="p-2.5 bg-gray-50 rounded-xl border border-gray-100"><i data-lucide="layers"
+                                            class="w-4 h-4"></i></div>
+                                    <div>
+                                        <p class="text-[11px] font-bold uppercase" data-i18n="studio.superResolution">Super Resolution</p>
+                                        <p id="srHint" class="text-[9px] text-gray-400">重采样到 2K/4K，只重建细节，不生成内容</p>
+                                    </div>
+                                </div>
+                                <label class="ios-switch relative inline-block w-12 h-7">
+                                    <input type="checkbox" id="upscaleToggle" class="opacity-0 w-0 h-0"
+                                        onchange="toggleUpscaleOptions()">
+                                    <span
+                                        class="ios-slider absolute inset-0 cursor-pointer bg-gray-200 rounded-full transition-colors duration-300"></span>
+                                </label>
+                            </div>
+                            <div id="upscaleOptions" class="hidden pt-4 mt-4 border-t border-gray-100 grid-cols-2 gap-3">
+                                <button id="btn2x" onclick="setUpscaleFactor(2048)"
+                                    class="py-2.5 rounded-xl border border-black bg-black text-white text-[10px] font-bold transition-all">
+                                    2x (2K)
+                                </button>
+                                <button id="btn4x" onclick="setUpscaleFactor(4096)"
+                                    class="py-2.5 rounded-xl border border-gray-200 text-gray-400 text-[10px] font-bold hover:border-black hover:text-black transition-all">
+                                    4x (4K)
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="genBtn" onclick="handleGenerate()"
+                        class="glass-btn w-full py-5 text-white rounded-xl font-bold text-[11px] uppercase tracking-[0.4em] flex items-center justify-center gap-3 shadow-xl shadow-black/10 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i data-lucide="zap" id="btnIcon" class="w-4 h-4 text-yellow-400"></i>
+                        <span id="btnText" data-i18n="studio.beginRemaster">Begin Remastering</span>
+                    </button>
+                </section>
+            </div>
+
+            <div class="lg:col-span-8">
+                <div id="resultBox"
+                    class="result-frame relative h-[500px] lg:h-[650px] flex items-center justify-center overflow-hidden group">
+                    <div id="emptyState" class="text-center space-y-4 opacity-20">
+                        <i data-lucide="layout" class="w-12 h-12 mx-auto stroke-[1px]"></i>
+                        <p class="text-[10px] font-black tracking-[0.5em] uppercase" data-i18n="studio.canvasReady">Canvas Ready</p>
+                    </div>
+
+                    <div id="loadingState" class="hidden flex flex-col items-center gap-5">
+                        <div class="loading-box"></div>
+                        <p class="text-[10px] font-bold uppercase tracking-[0.4em] animate-pulse" data-i18n="studio.computingPixels">Computing pixels...
+                        </p>
+                    </div>
+
+                    <img id="outputImg"
+                        class="hidden w-full h-full object-contain p-8 cursor-zoom-in transition-all duration-700 hover:scale-[1.02]"
+                        onclick="zoomImage()">
+
+                    <a id="downloadBtn" href="#" download
+                        class="hidden absolute bottom-8 right-8 w-14 h-14 bg-white shadow-2xl rounded-2xl flex items-center justify-center hover:bg-black hover:text-white transition-all duration-500 border border-gray-100">
+                        <i data-lucide="download" class="w-5 h-5"></i>
+                    </a>
+                </div>
+            </div>
+        </main>
+
+        <section class="mt-32">
+            <div class="flex items-center gap-6 mb-10">
+                <h2 class="text-[11px] font-black uppercase tracking-[0.5em]">Archive</h2>
+                <div class="h-px flex-1 bg-black/5"></div>
+            </div>
+            <div id="masonry" class="masonry-grid"></div>
+            <div id="loadMoreTrigger"
+                class="py-16 text-center opacity-20 text-[10px] font-bold uppercase tracking-widest">
+                End of Archive
+            </div>
+        </section>
+    </div>
+
+    <div id="lightbox" onclick="handleOutsideClick(event)"
+        class="hidden fixed inset-0 z-50 bg-white/95 backdrop-blur-3xl flex items-center justify-center p-8">
+        <button onclick="closeLightbox()" aria-label="Close"
+            class="fixed top-6 right-6 z-[60] p-2 rounded-full bg-white/80 hover:bg-white shadow-lg border border-gray-200/70 hover:rotate-90 transition-all duration-300">
+            <i data-lucide="x" class="w-7 h-7"></i>
+        </button>
+
+        <div class="max-w-6xl w-full h-full flex flex-col items-center justify-center">
+            <div class="relative w-full flex justify-center">
+                <div id="compareContainer"
+                    class="hidden relative w-full h-[75vh] rounded-3xl overflow-hidden bg-[#f8f8f9] border border-gray-200/50 shadow-2xl">
+                    <img id="compareGenerated" class="absolute inset-0 w-full h-full object-contain"
+                        style="transform-origin:50% 50%; will-change:transform">
+                    <div id="compareOriginalWrapper"
+                        class="absolute inset-0 w-full h-full overflow-hidden border-r-2 border-white/80">
+                        <img id="compareOriginal" class="absolute inset-0 w-full h-full object-contain"
+                            style="transform-origin:50% 50%; will-change:transform">
+                    </div>
+                    <div id="compareSlider" class="absolute inset-y-0 left-1/2 w-0.5 bg-white z-20 cursor-ew-resize">
+                        <div
+                            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-white shadow-2xl rounded-full flex items-center justify-center border border-gray-100">
+                            <i data-lucide="move-horizontal" class="w-4 h-4 text-black"></i>
+                        </div>
+                    </div>
+                    <div id="compareZoom"
+                        class="absolute top-4 right-4 z-30 px-2.5 py-1 rounded-full bg-black/45 backdrop-blur-md border border-white/15 text-white text-[10px] font-mono tracking-wider opacity-0 transition-opacity duration-200 pointer-events-none select-none">
+                        1.0x</div>
+                </div>
+                <div id="lightboxFrame" class="studio-preview-frame hidden">
+                    <img id="lightboxImg" src="" class="studio-preview-img" alt="preview">
+                    <div id="lightboxRes" data-no-pan
+                        class="absolute top-4 left-4 bg-black/30 backdrop-blur-md border border-white/20 text-white px-3 py-1.5 rounded-full text-[10px] font-medium tracking-wider opacity-0 transition-opacity duration-300 pointer-events-none z-30">
+                    </div>
+                </div>
+            </div>
+            <div class="mt-8">
+                <button onclick="downloadLightboxImage()"
+                    class="px-10 py-4 bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-3 shadow-xl">
+                    <i data-lucide="save" class="w-4 h-4"></i> Save Master
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        function tr(key){ return window.StudioI18n ? StudioI18n.t(key) : key; }
+        function applyLanguage(lang){
+            if(lang && window.StudioI18n) StudioI18n.set(lang);
+            document.title = tr('nav.enhance');
+            const btnText = document.getElementById('btnText');
+            if(btnText && !document.getElementById('genBtn')?.disabled) btnText.textContent = tr('studio.beginRemaster');
+        }
+        window.addEventListener('message', event => {
+            if(event.data?.type === 'studio-lang') applyLanguage(event.data.lang);
+        });
+        window.addEventListener('studio-lang-change', () => { document.title = tr('nav.enhance'); });
+        function generateUUID() {
+            if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+                try { return crypto.randomUUID(); } catch (e) { }
+            }
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+        const CLIENT_ID = localStorage.getItem("client_id") || generateUUID();
+        localStorage.setItem("client_id", CLIENT_ID);
+
+        let uploadedPath = "";
+        let currentResult = null;
+        let currentUpscaleFactor = 2048;
+
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('fileInput');
+        const previewImg = document.getElementById('previewImg');
+        const slider = document.getElementById('strengthSlider');
+        const valDisplay = document.getElementById('strengthVal');
+        const textureSlider = document.getElementById('textureSlider');
+        const textureValDisplay = document.getElementById('textureVal');
+        const preSlider = document.getElementById('preSharpenSlider');
+        const preValDisplay = document.getElementById('preSharpenVal');
+        const detailSlider = document.getElementById('detailSlider');
+        const detailValDisplay = document.getElementById('detailVal');
+        const claritySlider = document.getElementById('claritySlider');
+        const clarityValDisplay = document.getElementById('clarityVal');
+        // 皮肤区细节保留比例：1 = 不区分皮肤；越小脸部越柔（头发/衣料不受影响）
+        const SKIN_PROTECT = 0.55;
+
+        // ===== 增强模式：faithful（解析式，不重绘）/ generative（SeedVR2 生成式修复）=====
+        let enhanceMode = 'faithful';
+        const MODE_HINTS = {
+            faithful: '不走生成模型：皱纹、褶皱、毛孔、发丝全部沿用原图，脸和画风零改动',
+            generative: '走 SeedVR2 生成式修复：会重绘皮肤与发丝，适合作品严重糊掉/噪点过多时救急；人像容易磨皮变油'
+        };
+        function setEnhanceMode(mode) {
+            enhanceMode = mode === 'generative' ? 'generative' : 'faithful';
+            document.querySelectorAll('[data-enhance-mode]').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.enhanceMode === enhanceMode);
+            });
+            const faith = document.getElementById('faithParams');
+            const gen = document.getElementById('genParams');
+            if (faith) faith.classList.toggle('hidden', enhanceMode !== 'faithful');
+            if (gen) gen.classList.toggle('hidden', enhanceMode !== 'generative');
+            const hint = document.getElementById('modeHint');
+            if (hint) hint.textContent = MODE_HINTS[enhanceMode];
+            const sr = document.getElementById('srHint');
+            if (sr) sr.textContent = enhanceMode === 'faithful' ? '重采样到 2K/4K，只重建细节，不生成内容' : 'Phase 2：再走一遍 SeedVR2 放大';
+        }
+        document.querySelectorAll('[data-enhance-mode]').forEach(btn => {
+            btn.onclick = () => setEnhanceMode(btn.dataset.enhanceMode);
+        });
+        setEnhanceMode('faithful');
+
+        function setUpscaleFactor(factor) {
+            currentUpscaleFactor = factor;
+            const btn2x = document.getElementById('btn2x');
+            const btn4x = document.getElementById('btn4x');
+
+            // Helper to set active/inactive styles
+            const setActive = (btn) => {
+                btn.className = "py-2.5 rounded-xl border border-black bg-black text-white text-[10px] font-bold transition-all";
+            };
+            const setInactive = (btn) => {
+                btn.className = "py-2.5 rounded-xl border border-gray-200 text-gray-400 text-[10px] font-bold hover:border-black hover:text-black transition-all";
+            };
+
+            if (factor === 2048) {
+                setActive(btn2x);
+                setInactive(btn4x);
+            } else {
+                setInactive(btn2x);
+                setActive(btn4x);
+            }
+        }
+
+        dropzone.onclick = () => fileInput.click();
+        fileInput.onchange = (e) => handleFile(e.target.files[0]);
+
+        // Drag and Drop
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            try { e.dataTransfer.dropEffect = 'copy'; } catch (_) { }
+            dropzone.classList.add('border-black', 'bg-gray-50');
+        });
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.classList.remove('border-black', 'bg-gray-50');
+        });
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('border-black', 'bg-gray-50');
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                handleFile(e.dataTransfer.files[0]);
+                return;
+            }
+            // 从素材库侧栏拖进来的条目（没有本地文件，只有一个素材地址）
+            let rawUrl = '';
+            try {
+                rawUrl = e.dataTransfer.getData('application/x-asset-url')
+                    || e.dataTransfer.getData('text/uri-list')
+                    || e.dataTransfer.getData('text/plain')
+                    || '';
+            } catch (_) { }
+            if (rawUrl) {
+                // 兼容绝对地址（如 http://127.0.0.1:3000/assets/...）与相对路径
+                let assetPath = rawUrl.split('\n')[0].trim();
+                try {
+                    const u = new URL(assetPath, location.origin);
+                    if (u.origin === location.origin) assetPath = u.pathname;
+                } catch (_) { }
+                if (/^\/assets\//.test(assetPath) || /^\/output\//.test(assetPath)) {
+                    window.EnhanceLibrary?.useItem({
+                        url: assetPath,
+                        name: decodeURIComponent(assetPath.split('/').pop() || 'asset')
+                    });
+                }
+            }
+        });
+
+        // Paste support
+        let isHovering = false;
+        dropzone.addEventListener('mouseenter', () => isHovering = true);
+        dropzone.addEventListener('mouseleave', () => isHovering = false);
+        window.addEventListener('paste', (e) => {
+            if (!isHovering) return;
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            for (let item of items) {
+                if (item.kind === 'file' && item.type.startsWith('image/')) {
+                    const file = item.getAsFile();
+                    handleFile(file);
+                    break;
+                }
+            }
+        });
+
+        slider.oninput = function () {
+            valDisplay.innerText = parseFloat(this.value).toFixed(2);
+        };
+
+        textureSlider.oninput = function () {
+            textureValDisplay.innerText = parseFloat(this.value).toFixed(2);
+        };
+        detailSlider.oninput = function () {
+            detailValDisplay.innerText = parseFloat(this.value).toFixed(2);
+        };
+        claritySlider.oninput = function () {
+            clarityValDisplay.innerText = parseFloat(this.value).toFixed(2);
+        };
+
+        preSlider.oninput = function () {
+            preValDisplay.innerText = parseFloat(this.value).toFixed(2);
+        };
+
+        async function handleFile(file) {
+            if (!file) return;
+            const btn = document.getElementById('genBtn');
+            const btnText = document.getElementById('btnText');
+
+            // Disable button during upload
+            btn.disabled = true;
+            btnText.innerText = tr('studio.uploading');
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImg.src = e.target.result;
+                previewImg.classList.remove('hidden');
+                document.getElementById('uploadContent').classList.add('opacity-0');
+                document.getElementById('changeOverlay').classList.replace('hidden', 'flex');
+            };
+            reader.readAsDataURL(file);
+
+            const formData = new FormData();
+            formData.append('files', file);
+            try {
+                const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                const data = await res.json();
+                uploadedPath = data.files[0].comfy_name;
+                // Enable button after successful upload
+                btn.disabled = false;
+                btnText.innerText = tr('studio.beginRemaster');
+            } catch (err) {
+                console.error("Upload error");
+                btnText.innerText = tr('studio.uploadFailed');
+                btn.disabled = false;
+            }
+        }
+
+        function toggleUpscaleOptions() {
+            const toggle = document.getElementById('upscaleToggle');
+            const options = document.getElementById('upscaleOptions');
+            if (toggle.checked) {
+                options.classList.remove('hidden');
+                options.classList.add('grid');
+            } else {
+                options.classList.add('hidden');
+                options.classList.remove('grid');
+            }
+        }
+
+        async function handleGenerate() {
+            if (!uploadedPath) {
+                const dropzone = document.getElementById('dropzone');
+                dropzone.style.transition = "0.2s";
+                dropzone.style.borderColor = "#ef4444";
+                dropzone.style.transform = "scale(0.98)";
+                setTimeout(() => { dropzone.style.borderColor = ""; dropzone.style.transform = "scale(1)"; }, 300);
+                return;
+            }
+            const btn = document.getElementById('genBtn');
+            btn.disabled = true;
+            btn.style.backgroundColor = '#333';
+            btn.innerHTML = `<i data-lucide="zap" class="w-4 h-4 text-yellow-400 fill-yellow-400 animate-pulse"></i><span class="tracking-[0.4em] text-[11px] uppercase">${tr('studio.processing')}</span>`;
+            lucide.createIcons();
+            document.getElementById('emptyState').classList.add('hidden');
+            document.getElementById('outputImg').classList.add('hidden');
+            document.getElementById('loadingState').classList.remove('hidden');
+
+            let debugStep = "Start";
+            try {
+                let finalData;
+                const isUpscale = document.getElementById('upscaleToggle').checked;
+
+                if (enhanceMode === 'faithful') {
+                    // 解析式增强：服务端只做重采样 + 细节提升，不经过任何生成模型
+                    debugStep = "Faithful Enhance";
+                    btn.innerHTML = `<i data-lucide="zap" class="w-4 h-4 text-yellow-400 fill-yellow-400 animate-pulse"></i><span class="tracking-[0.4em] text-[11px] uppercase">保真增强中…</span>`;
+                    lucide.createIcons();
+                    const res = await fetch('/api/enhance/faithful', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            image: uploadedPath,
+                            detail: parseFloat(detailSlider.value),
+                            clarity: parseFloat(claritySlider.value),
+                            skin_protect: SKIN_PROTECT,
+                            short_edge: isUpscale ? currentUpscaleFactor : 0
+                        })
+                    });
+                    const data = await res.json().catch(() => ({}));
+                    if (!res.ok) throw new Error(data.detail || data.error || 'Faithful enhance failed');
+                    if (!data.images?.length) throw new Error('Faithful enhance returned no image');
+                    finalData = data;
+                } else {
+                debugStep = "Phase 1 Request";
+                btn.innerHTML = `<i data-lucide="zap" class="w-4 h-4 text-yellow-400 fill-yellow-400 animate-pulse"></i><span class="tracking-[0.4em] text-[11px] uppercase">${isUpscale ? "Phase 1/2: Enhancing..." : "Processing..."}</span>`;
+                lucide.createIcons();
+
+                const enhanceRes = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        workflow_json: "Z-Image-Enhance.json",
+                        params: {
+                            "15": { "image": uploadedPath },
+                            "7": { "amount": parseFloat(preSlider.value) },
+                            "204": { "value": parseFloat(slider.value) },
+                            "304": { "value": parseFloat(textureSlider.value) }
+                        },
+                        type: "enhance",
+                        client_id: CLIENT_ID
+                    })
+                });
+                const enhanceData = await enhanceRes.json();
+                if (enhanceData.error) throw new Error("Enhance API Error: " + enhanceData.error);
+                if (!enhanceData.images?.length) throw new Error("Enhance failed: No images returned");
+
+                finalData = enhanceData;
+
+                if (isUpscale) {
+                    debugStep = "Phase 2 Preparation";
+                    btn.innerHTML = `<i data-lucide="zap" class="w-4 h-4 text-yellow-400 fill-yellow-400 animate-pulse"></i><span class="tracking-[0.4em] text-[11px] uppercase">Phase 2/2: Uploading...</span>`;
+                    lucide.createIcons();
+
+                    const imgUrl = enhanceData.images[0];
+                    let imgBlob;
+                    try {
+                        const blobRes = await fetch(imgUrl);
+                        if (!blobRes.ok) throw new Error(`Fetch failed status: ${blobRes.status}`);
+                        imgBlob = await blobRes.blob();
+                    } catch (e) { throw new Error(`Failed to fetch Phase 1 image: ${e.message}`); }
+
+                    debugStep = "Phase 2 Upload";
+                    const formData = new FormData();
+                    formData.append('files', imgBlob, 'temp_upscale_input.png');
+                    const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
+                    if (!uploadRes.ok) throw new Error(`Upload failed status: ${uploadRes.status}`);
+                    const uploadData = await uploadRes.json();
+                    if (!uploadData.files?.[0]) throw new Error("Intermediate upload failed");
+                    const uploadedInput = uploadData.files[0].comfy_name;
+
+                    debugStep = "Phase 2 Execution";
+                    btn.innerHTML = `<i data-lucide="zap" class="w-4 h-4 text-yellow-400 fill-yellow-400 animate-pulse"></i><span class="tracking-[0.4em] text-[11px] uppercase">Phase 2/2: Upscaling...</span>`;
+                    lucide.createIcons();
+                    const seed = Math.floor(Math.random() * 4294967295);
+                    const upscaleRes = await fetch('/api/generate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            workflow_json: "upscale.json",
+                            params: { "15": { "image": uploadedInput }, "172": { "seed": seed, "resolution": currentUpscaleFactor } },
+                            type: "enhance",
+                            client_id: CLIENT_ID
+                        })
+                    });
+                    finalData = await upscaleRes.json();
+                    if (finalData.error) throw new Error("Upscale API Error: " + finalData.error);
+                    if (!finalData.images?.length) throw new Error("Upscale failed: No images returned");
+                }
+                }  // end generative
+
+                currentResult = finalData;
+                const out = document.getElementById('outputImg');
+                out.src = finalData.images[0];
+                out.classList.remove('hidden');
+                document.getElementById('downloadBtn').classList.remove('hidden');
+                document.getElementById('downloadBtn').href = finalData.images[0];
+                document.getElementById('loadingState').classList.add('hidden');
+                renderImageCard(finalData, true);
+
+            } catch (error) {
+                console.error("Generation Error at step " + debugStep, error);
+                document.getElementById('emptyState').classList.remove('hidden');
+                document.getElementById('loadingState').classList.add('hidden');
+                alert(`Error at ${debugStep}: ${error.message || JSON.stringify(error)}`);
+            } finally {
+                btn.disabled = false;
+                btn.style.backgroundColor = '';
+                btn.innerHTML = `<i data-lucide="zap" class="w-4 h-4 text-yellow-400"></i><span id="btnText">Begin Remastering</span>`;
+                lucide.createIcons();
+            }
+        }
+
+        function zoomImage() {
+            if (currentResult) {
+                // Ensure comparison works by injecting params if missing
+                if (!currentResult.params && uploadedPath) {
+                    currentResult.params = { "15": { "image": uploadedPath } };
+                }
+                openLightbox(currentResult);
+            }
+        }
+
+        function renderImageCard(data, isNew = false) {
+            const masonry = document.getElementById('masonry');
+            if (document.getElementById(`h-${data.timestamp}`)) return;
+
+            const card = document.createElement('div');
+            card.id = `h-${data.timestamp}`;
+            card.dataset.historyTs = data.timestamp;
+            card.className = 'masonry-item group relative rounded-2xl overflow-hidden cursor-zoom-in';
+            card.onclick = () => { if(document.body.classList.contains('history-bulk-selecting')) return; openLightbox(data); };
+
+            card.innerHTML = `
+                <img src="${data.images[0]}" class="w-full h-auto block transform group-hover:scale-105 transition-transform duration-1000">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-5">
+                    <p class="text-white text-[9px] font-black uppercase tracking-widest">Remaster Archive</p>
+                </div>
+            `;
+            isNew ? masonry.prepend(card) : masonry.appendChild(card);
+        }
+
+        // 对比框：分界拖动 + 滚轮缩放 + 放大后拖动平移 + 双击复位（公共组件，与 klein 等页同一套）
+        let compareView = null;
+        function initCompareEvents() {
+            if (!window.StudioImagePreview || !StudioImagePreview.attachCompare) return;
+            compareView = StudioImagePreview.attachCompare({
+                container: document.getElementById('compareContainer'),
+                wrapper: document.getElementById('compareOriginalWrapper'),
+                slider: document.getElementById('compareSlider'),
+                gen: document.getElementById('compareGenerated'),
+                orig: document.getElementById('compareOriginal'),
+                pill: document.getElementById('compareZoom')
+            });
+        }
+
+        let lightboxPreview = null;
+        function ensureLightboxPreview(){
+            if(!lightboxPreview && window.StudioImagePreview){
+                lightboxPreview = StudioImagePreview.attach(document.getElementById('lightboxFrame'));
+            }
+            return lightboxPreview;
+        }
+
+        // 对比框原来固定 75vh，宽图会出现上下大片留白；按图片真实比例收缩高度
+        function fitCompareHeight(img) {
+            const box = document.getElementById('compareContainer');
+            if (!box || box.classList.contains('hidden') || !img) return;
+            const nw = img.naturalWidth, nh = img.naturalHeight;
+            const boxW = box.clientWidth;
+            if (!nw || !nh || !boxW) return;
+            const maxH = Math.round(window.innerHeight * 0.75);
+            const h = Math.min(maxH, Math.round(boxW * nh / nw));
+            box.style.height = Math.max(220, h) + 'px';
+        }
+        window.addEventListener('resize', () => {
+            const gen = document.getElementById('compareGenerated');
+            if (gen && gen.naturalWidth) fitCompareHeight(gen);
+        });
+
+        // 画布外层会给 iframe 的 body 加 transform（界面缩放）；body 一旦有 transform，
+        // 它内部的 position:fixed 就退化成「相对 body 定位」——lightbox 被撑到整页高度、
+        // 图片垂直居中跑到页面中段（小屏要往下滚很久才看见），右上角关闭键也会跟着漂。
+        // 把 lightbox 挂到 <html> 下即可恢复真正的视口定位（素材侧栏用的是同一招）。
+        function liftLightbox() {
+            const lb = document.getElementById('lightbox');
+            if (lb && lb.parentElement !== document.documentElement) {
+                document.documentElement.appendChild(lb);
+            }
+            return lb;
+        }
+
+        function openLightbox(data) {
+            liftLightbox();
+            const compare = document.getElementById('compareContainer');
+            const frame = document.getElementById('lightboxFrame');
+            const single = document.getElementById('lightboxImg');
+            const resPill = document.getElementById('lightboxRes');
+
+            resPill.style.opacity = '0';
+            const updateRes = (target) => {
+                if (target.naturalWidth) {
+                    resPill.innerText = `${target.naturalWidth} x ${target.naturalHeight}`;
+                    resPill.style.opacity = '1';
+                }
+            };
+
+            ensureLightboxPreview();
+            if(lightboxPreview) lightboxPreview.reset();
+
+            if (data.params?.["15"]?.image) {
+                compare.classList.remove('hidden');
+                frame.classList.add('hidden');
+                const genImg = document.getElementById('compareGenerated');
+                document.getElementById('compareOriginal').src = `/api/view?filename=${encodeURIComponent(data.params["15"].image)}&type=input`;
+                genImg.src = data.images[0];
+                document.getElementById('compareOriginalWrapper').style.clipPath = 'inset(0 50% 0 0)';
+                document.getElementById('compareSlider').style.left = '50%';
+                if (compareView) compareView.reset();
+
+                genImg.onload = () => { updateRes(genImg); fitCompareHeight(genImg); };
+                if (genImg.complete) { updateRes(genImg); fitCompareHeight(genImg); }
+            } else {
+                compare.classList.add('hidden');
+                frame.classList.remove('hidden');
+                single.src = data.images[0];
+
+                single.onload = () => updateRes(single);
+                if (single.complete) updateRes(single);
+            }
+            document.getElementById('lightbox').classList.replace('hidden', 'flex');
+            // body 与 html 同时锁：lightbox 已挂到 html 下，只锁 body 拦不住根滚动
+            document.documentElement.style.overflow = 'hidden';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            if(lightboxPreview) lightboxPreview.reset();
+            const cc = document.getElementById('compareContainer');
+            if (compareView) compareView.reset();
+            document.getElementById('lightbox').classList.replace('flex', 'hidden');
+            document.documentElement.style.overflow = '';
+            document.body.style.overflow = 'auto';
+        }
+
+        function handleOutsideClick(e) { if (e.target.id === 'lightbox') closeLightbox(); }
+
+        // —— Save Master：交给公共 SaveMaster 处理（写 D 盘交付目录，失败回退浏览器下载）——
+        function downloadLightboxImage() {
+            const compare = document.getElementById('compareContainer');
+            const inCompare = compare && !compare.classList.contains('hidden');
+            const img = inCompare ? document.getElementById('compareGenerated') : document.getElementById('lightboxImg');
+            const raw = img && (img.getAttribute('src') || img.src);
+            if (!raw) { window.SaveMaster.toast('没有找到可保存的图片，请重新打开预览', false); return; }
+            window.SaveMaster.save(raw, { fallback: 'Enhance-Master' });
+        }
+
+        async function loadHistory() {
+            try {
+                const res = await fetch('/api/history?type=enhance');
+                const history = await res.json();
+                history.forEach(item => renderImageCard(item));
+            } catch (e) { }
+        }
+
+        window.onload = () => {
+            applyLanguage();
+            loadHistory().then(() => window.HistoryBulkManager?.attach({masonry:'#masonry'}));
+            initCompareEvents();
+            window.EnhanceLibrary?.init();
+        };
+    </script>
+
+    <!-- ===== 素材库侧栏：拖到左侧输入框，或单击直接选用 ===== -->
+    <div id="libToggle" class="lib-toggle" title="打开素材库">素材库</div>
+    <aside id="libPanel" class="lib-panel">
+        <div class="lib-head">
+            <span class="lib-title">素材库</span>
+            <div class="flex items-center gap-1">
+                <button id="libRefresh" title="刷新"
+                    class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                    <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                </button>
+                <button id="libClose" title="收起"
+                    class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+        <p class="px-4 pb-3 text-[9px] leading-relaxed text-gray-400">
+            拖到左侧「输入图片」框内，或单击缩略图直接选用
+        </p>
+        <div id="libBody" class="lib-body">
+            <div class="lib-empty">正在读取素材库…</div>
+        </div>
+    </aside>
+
+    <script>
+        // ===== 素材库侧栏 =====
+        window.EnhanceLibrary = (function () {
+            const panel = document.getElementById('libPanel');
+            const body = document.getElementById('libBody');
+            const toggle = document.getElementById('libToggle');
+            let loaded = false;
+            let loading = false;
+
+            function open() {
+                panel.classList.add('open');
+                document.body.classList.add('lib-open');
+                toggle.style.display = 'none';
+                placeFloating();
+                if (loaded) load();   // 每次打开都刷新，保证新生成的素材能立刻看到
+                else load();
+            }
+
+            function close() {
+                panel.classList.remove('open');
+                document.body.classList.remove('lib-open');
+                toggle.style.display = '';
+                placeFloating();
+            }
+
+            function itemEl(item) {
+                const el = document.createElement('div');
+                el.className = 'lib-item';
+                el.draggable = true;
+                el.title = (item.name || '') + '\n拖到左侧输入框，或点击选用';
+
+                const img = document.createElement('img');
+                img.src = item.url;
+                img.loading = 'lazy';
+                img.alt = item.name || '';
+                el.appendChild(img);
+
+                const cap = document.createElement('div');
+                cap.className = 'lib-name';
+                cap.textContent = item.name || '';
+                el.appendChild(cap);
+
+                el.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.effectAllowed = 'copy';
+                    try {
+                        e.dataTransfer.setData('application/x-asset-url', item.url);
+                        e.dataTransfer.setData('text/plain', item.url);
+                    } catch (_) { }
+                });
+                el.addEventListener('click', () => useItem(item));
+
+                return el;
+            }
+
+            function render(library) {
+                body.innerHTML = '';
+                const libs = (library && library.libraries) || [];
+                let total = 0;
+
+                libs.forEach((lib) => {
+                    (lib.categories || []).forEach((cat) => {
+                        const items = (cat.items || []).filter((it) => {
+                            const u = String(it.url || '');
+                            return it.kind === 'image' || /\.(png|jpe?g|webp|gif|bmp)$/i.test(u.split('?')[0]);
+                        });
+                        if (!items.length) return;
+                        total += items.length;
+
+                        const h = document.createElement('div');
+                        h.className = 'lib-cat';
+                        h.textContent = cat.name + ' · ' + items.length;
+                        body.appendChild(h);
+
+                        const grid = document.createElement('div');
+                        grid.className = 'lib-grid';
+                        items.forEach((it) => grid.appendChild(itemEl(it)));
+                        body.appendChild(grid);
+                    });
+                });
+
+                if (!total) {
+                    body.innerHTML = '<div class="lib-empty">素材库还是空的<br>先去生成几张图，或上传素材</div>';
+                    loaded = true;
+                    return;
+                }
+                loaded = true;
+                if (window.lucide) window.lucide.createIcons();
+            }
+
+            async function load() {
+                if (loading) return;
+                loading = true;
+                body.innerHTML = '<div class="lib-loading"></div>';
+                try {
+                    const res = await fetch('/api/asset-library', { cache: 'no-store' });
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    const data = await res.json();
+                    render(data.library || data);
+                } catch (err) {
+                    body.innerHTML = '<div class="lib-empty">读取素材库失败<br>' + (err.message || err) + '</div>';
+                } finally {
+                    loading = false;
+                }
+            }
+
+            async function useItem(item) {
+                if (!item || !item.url) return;
+                const toast = window.SaveMaster ? window.SaveMaster.toast : function () { };
+                toast('正在读取素材…', true);
+                try {
+                    const res = await fetch(item.url);
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    const blob = await res.blob();
+                    const name = decodeURIComponent(String(item.url).split('?')[0].split('/').pop() || 'asset.png');
+                    const file = new File([blob], name, { type: blob.type || 'image/png' });
+                    await handleFile(file);
+                    toast('已选用：' + (item.name || name), true);
+                } catch (err) {
+                    toast('读取素材失败：' + (err.message || err), false);
+                }
+            }
+
+            // 页面 body 被界面缩放加了 transform，position:fixed 会退化为跟随 body 滚动；
+            // 把浮层挂到 <html> 下，才能真正固定在视口上。
+            function detachFromBody() {
+                const root = document.documentElement;
+                if (toggle.parentElement !== root) root.appendChild(toggle);
+                if (panel.parentElement !== root) root.appendChild(panel);
+            }
+
+            function innerScale() {
+                try {
+                    const t = getComputedStyle(document.body).transform;
+                    const m = /matrix\(([^)]+)\)/.exec(t || '');
+                    if (!m) return 1;
+                    const a = parseFloat(m[1].split(',')[0]);
+                    return (isFinite(a) && a > 0.05 && a <= 1.5) ? a : 1;
+                } catch (_) { return 1; }
+            }
+
+            // 左侧导航里「角度控制」的位置 → 换算成本页 CSS 坐标，让按钮与它齐平
+            function navAnchorY() {
+                try {
+                    if (window.self === window.top) return null;
+                    const pdoc = window.parent.document;
+                    const fe = window.frameElement;
+                    if (!fe) return null;
+                    const nav = pdoc.querySelector('[data-i18n="nav.angle"]') ||
+                        Array.from(pdoc.querySelectorAll('.nav-text')).find(function (e) {
+                            return /角度控制|Angle/i.test(e.textContent || '');
+                        });
+                    if (!nav) return null;
+                    const nr = nav.getBoundingClientRect();
+                    const ir = fe.getBoundingClientRect();
+                    if (!nr.height || !ir.height) return null;
+                    const outer = ir.height / (fe.clientHeight || 1);
+                    return (nr.top + nr.height / 2 - ir.top) / (outer || 1);
+                } catch (_) { return null; }
+            }
+
+            function placeFloating() {
+                const anchor = navAnchorY();
+                const y = (anchor !== null && anchor > 40 && anchor < window.innerHeight - 40)
+                    ? anchor
+                    : window.innerHeight * 0.34;
+                toggle.style.top = y + 'px';
+                // 让主内容让位的宽度与侧栏视觉宽度一致
+                document.body.style.paddingRight = panel.classList.contains('open')
+                    ? (308 / innerScale()) + 'px'
+                    : '';
+            }
+
+            function init() {
+                detachFromBody();
+                toggle.addEventListener('click', open);
+                document.getElementById('libClose').addEventListener('click', close);
+                document.getElementById('libRefresh').addEventListener('click', load);
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && panel.classList.contains('open')) close();
+                });
+                if (window.lucide) window.lucide.createIcons();
+
+                placeFloating();
+                window.addEventListener('resize', placeFloating);
+                window.addEventListener('scroll', placeFloating, { passive: true });
+
+                // 支持用 ?openLibrary=1 直接展开素材库
+                try {
+                    if (new URLSearchParams(location.search).get('openLibrary') === '1') open();
+                } catch (_) { }
+            }
+
+            return { init: init, open: open, close: close, load: load, useItem: useItem };
+        })();
+    </script>
+</body>
+
+</html>

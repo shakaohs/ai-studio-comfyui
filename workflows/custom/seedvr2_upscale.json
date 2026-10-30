@@ -1,0 +1,130 @@
+{
+  "24": {
+    "class_type": "SeedVR2LoadVAEModel",
+    "inputs": {
+      "model": "ema_vae_fp16.safetensors",
+      "device": "cuda:0",
+      "encode_tiled": false,
+      "encode_tile_size": 1024,
+      "encode_tile_overlap": 128,
+      "decode_tiled": false,
+      "decode_tile_size": 1024,
+      "decode_tile_overlap": 128,
+      "tile_debug": "false",
+      "offload_device": "none",
+      "cache_model": false
+    },
+    "_meta": {
+      "title": "SeedVR2LoadVAEModel"
+    }
+  },
+  "11": {
+    "class_type": "SeedVR2VideoUpscaler",
+    "inputs": {
+      "image": [
+        "7",
+        0
+      ],
+      "dit": [
+        "23",
+        0
+      ],
+      "vae": [
+        "24",
+        0
+      ],
+      "seed": 678864249,
+      "resolution": 1440,
+      "max_resolution": 0,
+      "batch_size": 5,
+      "uniform_batch_size": false,
+      "color_correction": "lab",
+      "temporal_overlap": 0,
+      "prepend_frames": 0,
+      "input_noise_scale": 0,
+      "latent_noise_scale": 0,
+      "offload_device": "cpu",
+      "enable_debug": false,
+      "control_after_generate": "randomize"
+    },
+    "_meta": {
+      "title": "SeedVR2VideoUpscaler"
+    }
+  },
+  "7": {
+    "class_type": "ImageCASharpening+",
+    "inputs": {
+      "image": [
+        "12",
+        0
+      ],
+      "amount": 0.8000000000000002
+    },
+    "_meta": {
+      "title": "ImageCASharpening+"
+    }
+  },
+  "15": {
+    "class_type": "ImageCASharpening+",
+    "inputs": {
+      "image": [
+        "11",
+        0
+      ],
+      "amount": 0.30000000000000004
+    },
+    "_meta": {
+      "title": "ImageCASharpening+"
+    }
+  },
+  "14": {
+    "class_type": "PreviewImage",
+    "inputs": {
+      "images": [
+        "15",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "PreviewImage"
+    }
+  },
+  "23": {
+    "class_type": "SeedVR2LoadDiTModel",
+    "inputs": {
+      "model": "seedvr2_ema_3b_fp8_e4m3fn.safetensors",
+      "device": "cuda:0",
+      "blocks_to_swap": 0,
+      "swap_io_components": false,
+      "offload_device": "none",
+      "cache_model": false,
+      "attention_mode": "sdpa"
+    },
+    "_meta": {
+      "title": "SeedVR2LoadDiTModel"
+    }
+  },
+  "12": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "example.png",
+      "upload": "image"
+    },
+    "_meta": {
+      "title": "LoadImage"
+    }
+  },
+  "13": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": [
+        "15",
+        0
+      ],
+      "filename_prefix": "canvas/upscale"
+    },
+    "_meta": {
+      "title": "SaveImage"
+    }
+  }
+}

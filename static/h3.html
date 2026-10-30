@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/static/images/logo.png" type="image/png">
+    <title>参考生视频 | MiniMax H3</title>
+    <script>
+        (function () {
+            try {
+                var theme = localStorage.getItem('studio_theme') || localStorage.getItem('canvas_theme') || 'light';
+                if (theme === 'dark') {
+                    document.documentElement.classList.add('studio-theme-dark');
+                    document.documentElement.classList.add('theme-dark');
+                }
+            } catch (e) { }
+        })();
+    </script>
+    <script src="/static/vendor/js/tailwindcss-cdn.js?v=2026.08.28.1793341124"></script>
+    <script src="/static/vendor/js/lucide.js?v=2026.08.28.1793341124"></script>
+    <script src="/static/js/theme.js?v=2026.08.28.1793341123"></script>
+    <script src="/static/js/asset-sidebar.js?v=2026.08.28.1793341123"></script>
+    <style>
+        :root {
+            --accent: #111827;
+            --bg: #f9fafb;
+            --card: #ffffff;
+            --line: #eef0f2;
+        }
+
+        *::-webkit-scrollbar { width: 10px !important; height: 10px !important; }
+        *::-webkit-scrollbar-track { background: transparent !important; }
+        *::-webkit-scrollbar-thumb { background-color: #d8d8d8 !important; border: 3px solid transparent !important; border-right-width: 5px !important; background-clip: padding-box !important; border-radius: 10px !important; }
+
+        body {
+            background: var(--bg);
+            color: var(--accent);
+            font-family: 'Inter', -apple-system, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            margin: 0;
+        }
+
+        .wrap { max-width: 1320px; margin: 0 auto; padding: 40px 40px 80px; }
+        .card { background: var(--card); border: 1px solid var(--line); border-radius: 20px; }
+
+        .nano-input {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            transition: border-color .25s ease, box-shadow .25s ease;
+            outline: none;
+            width: 100%;
+        }
+
+        .nano-input:focus { border-color: #000; box-shadow: 0 0 0 1px #000; }
+
+        .upload-box {
+            border: 1px dashed #e2e8f0;
+            border-radius: 14px;
+            background: var(--card);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all .3s ease;
+            aspect-ratio: 1/1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .upload-box:hover { border-color: #000; transform: translateY(-2px); }
+        .upload-box.drag-over { border-style: solid; border-color: #000; }
+        .upload-box img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+        .upload-box .clear-btn {
+            position: absolute; top: 4px; right: 4px; z-index: 3;
+            width: 18px; height: 18px; border-radius: 999px;
+            background: rgba(0, 0, 0, .55); color: #fff;
+            display: none; align-items: center; justify-content: center;
+            font-size: 11px; line-height: 1;
+        }
+        .upload-box.filled .clear-btn { display: flex; }
+
+        .btn-main { background: #000; color: #fff; border-radius: 14px; transition: all .25s ease; }
+        .btn-main:hover { background: #222; transform: translateY(-1px); }
+        .btn-main:disabled { background: #cbd5e1; cursor: not-allowed; transform: none; }
+
+        .btn-ghost { border: 1px solid var(--line); border-radius: 12px; transition: all .2s ease; background: var(--card); }
+        .btn-ghost:hover { border-color: #000; }
+
+        .result-frame {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 24px;
+            min-height: 520px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .spin { width: 26px; height: 26px; border: 2px solid #e5e7eb; border-top-color: #000; border-radius: 50%; animation: sp 0.9s linear infinite; }
+        @keyframes sp { to { transform: rotate(360deg); } }
+
+        .bar { height: 4px; border-radius: 999px; background: #eef0f2; overflow: hidden; }
+        .bar > i { display: block; height: 100%; width: 30%; background: #111; border-radius: 999px; animation: slide 1.6s ease-in-out infinite; }
+        @keyframes slide { 0% { margin-left: -30%; } 100% { margin-left: 100%; } }
+
+        html.studio-theme-dark { --accent: #f3f4f6; --bg: #0b0b0c; --card: #151517; --line: #262629; }
+        html.studio-theme-dark .upload-box { border-color: #2a2a2e; }
+        html.studio-theme-dark .btn-main { background: #f3f4f6; color: #111; }
+        html.studio-theme-dark .nano-input:focus { border-color: #f3f4f6; box-shadow: 0 0 0 1px #f3f4f6; }
+        html.studio-theme-dark .bar { background: #262629; }
+        html.studio-theme-dark .bar > i { background: #f3f4f6; }
+
+        .sec-title { display: flex; align-items: center; gap: 8px; color: #9ca3af; }
+        .sec-title span { font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: .18em; }
+        .hint { font-size: 9px; line-height: 1.6; color: #9ca3af; }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+        <header class="flex items-end justify-between mb-10">
+            <div>
+                <h1 class="text-3xl font-extrabold tracking-tighter italic">REFERENCE TO VIDEO</h1>
+                <p class="text-[10px] font-bold uppercase tracking-[0.35em] text-gray-400 mt-2">MiniMax H3 · 参考图生视频 · 一采二采</p>
+            </div>
+            <div class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                <span>ComfyUI</span>
+                <span id="statusDot" class="w-2 h-2 rounded-full bg-gray-300"></span>
+            </div>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <!-- 左：参数 -->
+            <section class="lg:col-span-5 space-y-5">
+
+                <div class="card p-5 space-y-3">
+                    <div class="sec-title"><i data-lucide="images" class="w-3.5 h-3.5"></i><span>参考素材（最多 9 张，留空即不使用）</span></div>
+                    <div id="refGrid" class="grid grid-cols-3 gap-2.5"></div>
+                    <p class="hint">按顺序即 <b>&lt;Picture 1&gt;、&lt;Picture 2&gt;…</b>，提示词里用这个编号指代。参考图会按「match」缩到生成分辨率（只缩不放）。</p>
+                </div>
+
+                <div class="card p-5 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <div class="sec-title"><i data-lucide="type" class="w-3.5 h-3.5"></i><span>提示词</span></div>
+                        <button id="tplBtn" class="btn-ghost px-2.5 py-1 text-[10px] font-bold text-gray-500">插入模板</button>
+                    </div>
+                    <textarea id="prompt" rows="8" class="nano-input px-4 py-3 text-xs leading-relaxed resize-y" placeholder="写清每张 <Picture N> 是谁、穿什么、场景是什么，再写镜头与动作。"></textarea>
+                    <p class="hint">H3 靠这段文字驱动。把人物/场景/动作写清，比堆形容词有用；同一个 <Picture N> 指代越具体，跨镜越稳。</p>
+                </div>
+
+                <div class="card p-5 space-y-4">
+                    <div class="sec-title"><i data-lucide="timer" class="w-3.5 h-3.5"></i><span>时长 / 画幅</span></div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase tracking-widest text-gray-400">时长（秒）</label>
+                            <input id="duration" type="number" min="5" max="16" step="0.5" value="14" class="nano-input px-3 py-2.5 text-sm font-bold">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase tracking-widest text-gray-400">总像素（MP）</label>
+                            <input id="megapixels" type="number" min="0.2" max="2" step="0.1" value="1" class="nano-input px-3 py-2.5 text-sm font-bold">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase tracking-widest text-gray-400">画面比例</label>
+                            <select id="aspect" class="nano-input px-3 py-2.5 text-xs font-bold"></select>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase tracking-widest text-gray-400">输出帧率</label>
+                            <input id="fps" type="number" min="12" max="30" step="1" value="24" class="nano-input px-3 py-2.5 text-sm font-bold">
+                        </div>
+                    </div>
+                    <p id="sizeHint" class="hint"></p>
+                </div>
+
+                <div class="card p-5 space-y-4">
+                    <div class="sec-title"><i data-lucide="git-branch-plus" class="w-3.5 h-3.5"></i><span>采样（一采低清 / 二采高清）</span></div>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase tracking-widest text-gray-400">总步数</label>
+                            <input id="steps" type="number" min="2" max="40" step="1" value="12" class="nano-input px-3 py-2.5 text-sm font-bold">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase tracking-widest text-gray-400">一采步数</label>
+                            <input id="firstSteps" type="number" min="1" max="40" step="1" value="8" class="nano-input px-3 py-2.5 text-sm font-bold">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase tracking-widest text-gray-400">二采（自动）</label>
+                            <input id="secondSteps" type="text" readonly value="4" class="nano-input px-3 py-2.5 text-sm font-bold bg-gray-50" style="color:#9ca3af">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase tracking-widest text-gray-400">低清比例</label>
+                            <input id="lowres" type="number" min="0.25" max="1" step="0.05" value="0.6" class="nano-input px-3 py-2.5 text-sm font-bold">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase tracking-widest text-gray-400">CFG</label>
+                            <input id="cfg" type="number" min="0" max="10" step="0.1" value="1" class="nano-input px-3 py-2.5 text-sm font-bold">
+                        </div>
+                    </div>
+                    <p class="hint">一采跑在低清（低清比例 × 目标分辨率），二采把潜变量抬到目标分辨率再精修。<b>总步数 = 一采 + 二采</b>，调一采不影响总 NFE。画布原设置：12 总 / 8 一采 / 0.6 低清。</p>
+                </div>
+
+                <div class="card p-5 space-y-4">
+                    <div class="sec-title"><i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i><span>LoRA / 高级</span></div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase tracking-widest text-gray-400">dmad 强度</label>
+                            <input id="loraDmad" type="number" min="0" max="2" step="0.05" value="0.8" class="nano-input px-3 py-2.5 text-sm font-bold">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase tracking-widest text-gray-400">Mystic 强度</label>
+                            <input id="loraMystic" type="number" min="0" max="2" step="0.05" value="0.35" class="nano-input px-3 py-2.5 text-sm font-bold">
+                        </div>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-gray-400">潜空间放大器</label>
+                        <select id="upscaler" class="nano-input px-3 py-2.5 text-xs font-bold"></select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3 text-[11px] font-bold text-gray-600">
+                        <label class="flex items-center gap-2"><input id="tiling" type="checkbox" class="w-3.5 h-3.5"> 高分辨率分块</label>
+                        <label class="flex items-center gap-2"><input id="preview" type="checkbox" checked class="w-3.5 h-3.5"> 实时预览</label>
+                    </div>
+                    <p class="hint">12GB 显存跑 1MP 以上建议开「分块」，速度略降但不容易 OOM；「实时预览」只是采样时的画面，不影响成品，关掉能省一点显存。</p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase tracking-widest text-gray-400">种子</label>
+                            <input id="seed" type="number" min="0" step="1" value="0" class="nano-input px-3 py-2.5 text-sm font-bold">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase tracking-widest text-gray-400">画质 CRF</label>
+                            <input id="crf" type="number" min="10" max="30" step="1" value="19" class="nano-input px-3 py-2.5 text-sm font-bold">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-3">
+                    <button id="runBtn" class="btn-main flex-1 py-4 font-bold text-[11px] uppercase tracking-[0.25em] flex items-center justify-center gap-3">
+                        <i data-lucide="zap" class="w-4 h-4"></i><span id="runText">开始生成</span>
+                    </button>
+                    <button id="cancelBtn" class="btn-ghost px-5 py-4 text-[11px] font-bold uppercase tracking-widest text-gray-500 hidden">取消</button>
+                </div>
+            </section>
+
+            <!-- 右：结果 -->
+            <section class="lg:col-span-7">
+                <div id="resultFrame" class="result-frame flex items-center justify-center p-6">
+                    <div class="text-center text-gray-300">
+                        <i data-lucide="film" class="w-7 h-7 mx-auto mb-3"></i>
+                        <p class="text-[10px] font-bold uppercase tracking-[0.3em]">等待生成</p>
+                    </div>
+                </div>
+                <div id="metaBar" class="mt-4 text-[10px] font-mono text-gray-400 leading-relaxed"></div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const $ = (id) => document.getElementById(id);
+        const MAX_REFS = 9;
+        const state = { refs: new Array(MAX_REFS).fill(''), job: null, timer: null, options: null };
+
+        function el(tag, cls, html) {
+            const n = document.createElement(tag);
+            if (cls) n.className = cls;
+            if (html !== undefined) n.innerHTML = html;
+            return n;
+        }
+
+        // ---- 参考图槽 ----
+        function buildRefSlots() {
+            const host = $('refGrid');
+            host.innerHTML = '';
+            for (let i = 0; i < MAX_REFS; i++) {
+                const box = el('div', 'upload-box');
+                box.dataset.index = i;
+                box.innerHTML = `<i data-lucide="plus" class="w-4 h-4 text-gray-300"></i>
+                    <span class="text-[9px] font-bold uppercase tracking-wider text-gray-400 px-1 text-center">图像 ${i + 1}</span>
+                    <span class="clear-btn">×</span>`;
+                const input = el('input');
+                input.type = 'file';
+                input.accept = 'image/*';
+                input.className = 'hidden';
+                box.appendChild(input);
+
+                box.querySelector('.clear-btn').onclick = (e) => {
+                    e.stopPropagation();
+                    state.refs[i] = '';
+                    box.classList.remove('filled');
+                    const img = box.querySelector('img');
+                    if (img) img.remove();
+                };
+
+                const setPreview = (src) => {
+                    const old = box.querySelector('img');
+                    if (old) old.remove();
+                    const img = el('img');
+                    img.src = src;
+                    box.appendChild(img);
+                    box.classList.add('filled');
+                };
+
+                const upload = async (file) => {
+                    if (!file) return;
+                    setPreview(URL.createObjectURL(file));
+                    const fd = new FormData();
+                    fd.append('files', file);
+                    const res = await fetch('/api/upload', { method: 'POST', body: fd });
+                    const data = await res.json();
+                    state.refs[i] = data.files[0].comfy_name;
+                };
+
+                box.onclick = () => input.click();
+                input.onchange = () => upload(input.files[0]);
+                box.ondragover = (e) => { e.preventDefault(); box.classList.add('drag-over'); };
+                box.ondragleave = () => box.classList.remove('drag-over');
+                box.ondrop = (e) => {
+                    e.preventDefault();
+                    box.classList.remove('drag-over');
+                    const f = e.dataTransfer.files && e.dataTransfer.files[0];
+                    if (f) { upload(f); return; }
+                    if (window.AssetSidebar) AssetSidebar.dropTo(e, upload);
+                };
+                host.appendChild(box);
+            }
+            if (window.lucide) lucide.createIcons();
+        }
+
+        // ---- 尺寸估算（与 ResolutionSelector 同算法：对齐到 32 的倍数）----
+        function estimateSize() {
+            const mp = parseFloat($('megapixels').value) || 1;
+            const aspect = $('aspect').value || '9:16 (Portrait Widescreen)';
+            const m = /^(\d+):(\d+)/.exec(aspect);
+            const aw = m ? Number(m[1]) : 1, ah = m ? Number(m[2]) : 1;
+            const total = mp * 1024 * 1024;
+            let w = Math.sqrt(total * aw / ah), h = w * ah / aw;
+            const snap = (v) => Math.max(32, Math.round(v / 32) * 32);
+            return { w: snap(w), h: snap(h) };
+        }
+
+        function refreshDerived() {
+            const steps = Math.max(2, parseInt($('steps').value) || 12);
+            let first = Math.max(1, parseInt($('firstSteps').value) || 8);
+            if (first > steps) { first = steps; $('firstSteps').value = steps; }
+            $('secondSteps').value = steps - first;
+
+            const sec = Math.max(0.2, parseFloat($('duration').value) || 14);
+            const frames = Math.round(sec * 24);
+            const length = Math.max(5, frames + (((5 - frames % 17) % 17) + 17) % 17);
+            const { w, h } = estimateSize();
+            $('sizeHint').textContent = `实际帧数 ${length} 帧 ≈ ${(length / 24).toFixed(2)} 秒（必须是 5+17k），估算画幅 ${w}×${h}`;
+        }
+
+        // ---- 提交与轮询 ----
+        async function run() {
+            const refs = state.refs.filter(Boolean);
+            if (!refs.length) { alert('至少放一张参考图'); return; }
+            if (!$('prompt').value.trim()) { alert('请填提示词'); return; }
+
+            const payload = {
+                prompt: $('prompt').value,
+                refs,
+                duration: parseFloat($('duration').value) || 14,
+                aspect: $('aspect').value,
+                megapixels: parseFloat($('megapixels').value) || 1,
+                steps: parseInt($('steps').value) || 12,
+                first_steps: parseInt($('firstSteps').value) || 8,
+                lowres_scale: parseFloat($('lowres').value) || 0.6,
+                cfg: parseFloat($('cfg').value) || 1,
+                seed: parseInt($('seed').value) || null,
+                lora_dmad: parseFloat($('loraDmad').value),
+                lora_mystic: parseFloat($('loraMystic').value),
+                tiling: $('tiling').checked,
+                preview: $('preview').checked,
+                upscaler: $('upscaler').value,
+                fps: parseInt($('fps').value) || 24,
+                crf: parseInt($('crf').value) || 19,
+            };
+
+            $('runBtn').disabled = true;
+            $('runText').textContent = '提交中';
+            $('cancelBtn').classList.remove('hidden');
+            showLoading();
+
+            try {
+                const r = await fetch('/api/h3/run', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const d = await r.json();
+                if (!r.ok) throw new Error(d.detail || ('HTTP ' + r.status));
+                state.job = d.job;
+                $('metaBar').textContent = `种子 ${d.seed} · ${d.info.length} 帧 ≈ ${d.info.seconds}s · ${d.info.first_steps}+${d.info.second_steps} 步`;
+                poll();
+            } catch (e) {
+                $('runBtn').disabled = false;
+                $('runText').textContent = '开始生成';
+                $('cancelBtn').classList.add('hidden');
+                showError(e.message);
+            }
+        }
+
+        function showLoading() {
+            const frame = $('resultFrame');
+            frame.className = 'result-frame flex items-center justify-center p-6';
+            frame.innerHTML = `<div class="w-full max-w-sm text-center">
+                <div class="spin mx-auto mb-4"></div>
+                <p id="stageText" class="text-[10px] font-bold uppercase tracking-[0.3em] text-gray-400">排队中</p>
+                <p id="elapsedText" class="text-[10px] text-gray-300 mt-2 font-mono">0.0s</p>
+                <div class="bar mt-4"><i></i></div>
+            </div>`;
+        }
+
+        function showError(msg) {
+            const frame = $('resultFrame');
+            frame.className = 'result-frame flex items-center justify-center p-8';
+            frame.innerHTML = `<div class="max-w-md text-center">
+                <i data-lucide="alert-triangle" class="w-6 h-6 mx-auto mb-3 text-red-400"></i>
+                <p class="text-[11px] font-bold text-red-500 leading-relaxed break-words" style="white-space:pre-wrap">${msg}</p>
+            </div>`;
+            if (window.lucide) lucide.createIcons();
+        }
+
+        async function poll() {
+            clearTimeout(state.timer);
+            if (!state.job) return;
+            try {
+                const d = await fetch('/api/h3/status/' + state.job).then(r => r.json());
+                const stageText = $('stageText');
+                if (d.state === 'done') return renderDone(d);
+                if (d.state === 'error') return finishWithError(d.error || '生成失败');
+                if (d.state === 'canceled') return finishWithError('已取消');
+                if (stageText) {
+                    stageText.textContent = d.state === 'queued'
+                        ? ('排队中 · 第 ' + (d.position || 1) + ' 位')
+                        : (d.state === 'running' ? '采样中' : '模型加载中');
+                }
+                const el2 = $('elapsedText');
+                if (el2) el2.textContent = (d.elapsed || 0).toFixed(1) + 's';
+                state.timer = setTimeout(poll, 2500);
+            } catch (e) {
+                state.timer = setTimeout(poll, 4000);
+            }
+        }
+
+        function finishWithError(msg) {
+            clearTimeout(state.timer);
+            state.job = null;
+            $('runBtn').disabled = false;
+            $('runText').textContent = '开始生成';
+            $('cancelBtn').classList.add('hidden');
+            showError(msg);
+        }
+
+        function renderDone(d) {
+            clearTimeout(state.timer);
+            state.job = null;
+            $('runBtn').disabled = false;
+            $('runText').textContent = '再生成一次';
+            $('cancelBtn').classList.add('hidden');
+
+            const frame = $('resultFrame');
+            frame.className = 'result-frame p-3 flex items-center justify-center';
+            frame.innerHTML = '';
+            if (d.video) {
+                const v = el('video', 'w-full h-auto rounded-2xl block');
+                v.src = d.video;
+                v.controls = true;
+                v.autoplay = true;
+                v.loop = true;
+                v.playsInline = true;
+                frame.appendChild(v);
+            } else {
+                frame.innerHTML = '<p class="text-[11px] text-gray-400">生成完成，但没有视频输出</p>';
+            }
+
+            const meta = [];
+            meta.push(`耗时 ${(d.elapsed || 0).toFixed(1)}s`);
+            if (d.info) meta.push(`${d.info.length} 帧 ≈ ${d.info.seconds}s`);
+            if (d.video) {
+                meta.push(`已自动入库`);
+            }
+            $('metaBar').innerHTML = meta.join(' · ') +
+                (d.video ? ` · <a href="${d.video}" download class="underline">下载</a>` : '');
+        }
+
+        async function cancel() {
+            if (!state.job) return;
+            try { await fetch('/api/h3/cancel/' + state.job, { method: 'POST' }); } catch (e) { }
+            finishWithError('已取消');
+        }
+
+        // ---- 初始化 ----
+        async function boot() {
+            buildRefSlots();
+            $('aspect').innerHTML = '<option>9:16 (Portrait Widescreen)</option>';
+            try {
+                const o = await fetch('/api/h3/options').then(r => r.json());
+                state.options = o;
+                $('aspect').innerHTML = o.aspects.map(a => `<option>${a}</option>`).join('');
+                $('upscaler').innerHTML = o.upscalers.map(a => `<option>${a}</option>`).join('');
+                const d = o.defaults;
+                $('aspect').value = d.aspect;
+                $('duration').value = d.duration;
+                $('megapixels').value = d.megapixels;
+                $('steps').value = d.steps;
+                $('firstSteps').value = d.first_steps;
+                $('lowres').value = d.lowres_scale;
+                $('cfg').value = d.cfg;
+                $('loraDmad').value = d.lora_dmad;
+                $('loraMystic').value = d.lora_mystic;
+                $('tiling').checked = d.tiling;
+                $('upscaler').value = d.upscaler;
+                $('fps').value = d.fps;
+                $('crf').value = d.crf;
+                $('preview').checked = d.preview;
+                $('statusDot').className = 'w-2 h-2 rounded-full bg-emerald-500';
+            } catch (e) {
+                $('statusDot').className = 'w-2 h-2 rounded-full bg-red-400';
+            }
+            $('seed').value = Math.floor(Math.random() * 2147483647);
+            ['duration', 'megapixels', 'aspect', 'steps', 'firstSteps'].forEach(id => {
+                $(id).addEventListener('input', refreshDerived);
+                $(id).addEventListener('change', refreshDerived);
+            });
+            refreshDerived();
+            $('runBtn').onclick = run;
+            $('cancelBtn').onclick = cancel;
+            $('tplBtn').onclick = () => {
+                const ta = $('prompt');
+                if (ta.value.trim() && !confirm('会覆盖当前提示词，继续？')) return;
+                ta.value = `duration_seconds: 14
+subject_definitions:
+<Subject 1> is the person from <Picture 1>, preserving facial identity, hairstyle, clothing and build.
+<Subject 2> is the person from <Picture 2>, preserving facial identity, hairstyle, clothing and build.
+<Subject 3> is the location from <Picture 3>, preserving layout, materials, lighting and props.
+shot_and_action:
+Single continuous handheld shot at eye level. <Subject 1> walks in from frame left and stops beside <Subject 2>. Natural breathing, blinking, small weight shifts. Camera pushes in slightly, shallow depth of field, motivated practical light. No cuts, no text, no watermark.`;
+            };
+            if (window.lucide) lucide.createIcons();
+            if (window.AssetSidebar) {
+                AssetSidebar.mount({
+                    hint: '拖到某个参考图格子里，或单击缩略图填入第一个空格',
+                    onUse: function (item, file) {
+                        const idx = state.refs.findIndex(r => !r);
+                        if (idx < 0) throw new Error('9 个格子都满了');
+                        const box = document.querySelector(`.upload-box[data-index="${idx}"]`);
+                        if (box) box.click();
+                        return null;
+                    }
+                });
+            }
+        }
+
+        boot();
+    </script>
+</body>
+
+</html>

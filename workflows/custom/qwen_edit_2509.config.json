@@ -1,0 +1,128 @@
+{
+  "title": "图像编辑 · 指令改图（可加参考图）",
+  "fields": [
+    {
+      "id": "f_image",
+      "node": "10",
+      "input": "image",
+      "name": "原图",
+      "type": "image",
+      "default": "",
+      "min": null,
+      "max": null,
+      "step": null,
+      "options": [],
+      "bind_prompt": null
+    },
+    {
+      "id": "f_ref",
+      "node": "30",
+      "input": "image2",
+      "name": "参考图（可选）",
+      "type": "image",
+      "default": "",
+      "min": null,
+      "max": null,
+      "step": null,
+      "options": [],
+      "bind_prompt": null
+    },
+    {
+      "id": "f_prompt",
+      "node": "30",
+      "input": "prompt",
+      "name": "编辑指令",
+      "type": "textarea",
+      "default": "",
+      "min": null,
+      "max": null,
+      "step": null,
+      "options": [],
+      "bind_prompt": true
+    },
+    {
+      "id": "f_mp",
+      "node": "12",
+      "input": "megapixels",
+      "name": "输出像素量(MP)",
+      "type": "number",
+      "default": 1.0,
+      "min": 0.2,
+      "max": 4.0,
+      "step": 0.1,
+      "options": [],
+      "bind_prompt": null
+    },
+    {
+      "id": "f_steps",
+      "node": "50",
+      "input": "steps",
+      "name": "步数",
+      "type": "number",
+      "default": 20,
+      "min": 4,
+      "max": 50,
+      "step": 1,
+      "options": [],
+      "bind_prompt": null
+    },
+    {
+      "id": "f_cfg",
+      "node": "50",
+      "input": "cfg",
+      "name": "CFG",
+      "type": "number",
+      "default": 2.5,
+      "min": 1.0,
+      "max": 8.0,
+      "step": 0.1,
+      "options": [],
+      "bind_prompt": null
+    },
+    {
+      "id": "f_shift",
+      "node": "20",
+      "input": "shift",
+      "name": "采样偏移",
+      "type": "number",
+      "default": 3.0,
+      "min": 0.5,
+      "max": 8.0,
+      "step": 0.1,
+      "options": [],
+      "bind_prompt": null
+    },
+    {
+      "id": "f_seed",
+      "node": "50",
+      "input": "seed",
+      "name": "随机种子",
+      "type": "number",
+      "default": 42,
+      "min": 0,
+      "max": 9007199254740991,
+      "step": 1,
+      "options": [],
+      "bind_prompt": null,
+      "random_enabled": true
+    }
+  ],
+  "mini_cards": {
+    "prompt": {
+      "x": 24,
+      "y": 30
+    },
+    "image": {
+      "x": 24,
+      "y": 230
+    },
+    "custom": {
+      "x": 300,
+      "y": 78
+    },
+    "output": {
+      "x": 560,
+      "y": 120
+    }
+  }
+}

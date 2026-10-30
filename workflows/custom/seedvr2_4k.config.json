@@ -1,0 +1,107 @@
+{
+  "title": "高清 4K/8K · SeedVR2",
+  "fields": [
+    {
+      "id": "f_image",
+      "node": "15",
+      "input": "image",
+      "name": "图片",
+      "type": "image",
+      "default": "",
+      "min": null,
+      "max": null,
+      "step": null,
+      "options": [],
+      "bind_prompt": null
+    },
+    {
+      "id": "f_res",
+      "node": "11",
+      "input": "resolution",
+      "name": "目标分辨率",
+      "type": "dropdown",
+      "default": "2160",
+      "min": null,
+      "max": null,
+      "step": null,
+      "options": [
+        "1440",
+        "2160",
+        "2880",
+        "4320"
+      ],
+      "bind_prompt": null
+    },
+    {
+      "id": "f_pre",
+      "node": "7",
+      "input": "amount",
+      "name": "前置锐化",
+      "type": "number",
+      "default": 0.8,
+      "min": 0.0,
+      "max": 2.0,
+      "step": 0.05,
+      "options": [],
+      "bind_prompt": null
+    },
+    {
+      "id": "f_post",
+      "node": "26",
+      "input": "amount",
+      "name": "后置锐化",
+      "type": "number",
+      "default": 0.3,
+      "min": 0.0,
+      "max": 2.0,
+      "step": 0.05,
+      "options": [],
+      "bind_prompt": null
+    },
+    {
+      "id": "f_swap",
+      "node": "23",
+      "input": "blocks_to_swap",
+      "name": "显存交换块数",
+      "type": "number",
+      "default": 36,
+      "min": 0,
+      "max": 36,
+      "step": 4,
+      "options": [],
+      "bind_prompt": null
+    },
+    {
+      "id": "f_seed",
+      "node": "11",
+      "input": "seed",
+      "name": "随机种子",
+      "type": "number",
+      "default": 42,
+      "min": 0,
+      "max": 4294967295,
+      "step": 1,
+      "options": [],
+      "bind_prompt": null,
+      "random_enabled": true
+    }
+  ],
+  "mini_cards": {
+    "prompt": {
+      "x": 24,
+      "y": 30
+    },
+    "image": {
+      "x": 24,
+      "y": 210
+    },
+    "custom": {
+      "x": 280,
+      "y": 78
+    },
+    "output": {
+      "x": 540,
+      "y": 120
+    }
+  }
+}

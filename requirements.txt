@@ -1,0 +1,17 @@
+# AI Studio / Infinite-Canvas — Python 运行时依赖
+# 主线版本与本机开发环境（Python 3.10.11）对齐，保证线上行为一致。
+# 若某个版本在 Linux 上没有对应 wheel，把该行 == 改成 >= 重新构建即可。
+fastapi==0.162.0
+starlette==1.7.0
+uvicorn==0.54.0
+websockets==16.1.1
+pydantic==2.14.1
+requests==2.34.2
+httpx==0.28.1
+python-multipart==0.0.32
+pillow==12.3.0
+
+# 保真增强（解析式锐化/局部对比，不走生成模型）依赖
+# headless 版本不需要 libGL，适合无 GPU 的容器
+opencv-python-headless>=4.9
+numpy>=1.24

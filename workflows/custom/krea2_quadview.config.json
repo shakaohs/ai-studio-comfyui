@@ -1,0 +1,115 @@
+{
+  "title": "四视图 · Krea2 角色设定表",
+  "fields": [
+    {
+      "id": "f_image",
+      "node": "17",
+      "input": "image",
+      "name": "参考图",
+      "type": "image",
+      "default": "",
+      "min": null,
+      "max": null,
+      "step": null,
+      "options": [],
+      "bind_prompt": null
+    },
+    {
+      "id": "f_prompt",
+      "node": "24",
+      "input": "prompt",
+      "name": "提示词",
+      "type": "textarea",
+      "default": "Convert the character in the image to a Character Sheet showing a face close-up, front full body, side full body and back full body views",
+      "min": null,
+      "max": null,
+      "step": null,
+      "options": [],
+      "bind_prompt": true
+    },
+    {
+      "id": "f_width",
+      "node": "7",
+      "input": "width",
+      "name": "宽",
+      "type": "number",
+      "default": 1536,
+      "min": 512,
+      "max": 2048,
+      "step": 16,
+      "options": [],
+      "bind_prompt": null
+    },
+    {
+      "id": "f_height",
+      "node": "7",
+      "input": "height",
+      "name": "高",
+      "type": "number",
+      "default": 1024,
+      "min": 512,
+      "max": 2048,
+      "step": 16,
+      "options": [],
+      "bind_prompt": null
+    },
+    {
+      "id": "f_steps",
+      "node": "14",
+      "input": "steps",
+      "name": "步数",
+      "type": "number",
+      "default": 10,
+      "min": 1,
+      "max": 30,
+      "step": 1,
+      "options": [],
+      "bind_prompt": null
+    },
+    {
+      "id": "f_refboost",
+      "node": "23",
+      "input": "ref_boost",
+      "name": "参考保真",
+      "type": "number",
+      "default": 1.0,
+      "min": 0,
+      "max": 4,
+      "step": 0.05,
+      "options": [],
+      "bind_prompt": null
+    },
+    {
+      "id": "f_seed",
+      "node": "14",
+      "input": "seed",
+      "name": "随机种子",
+      "type": "number",
+      "default": 42,
+      "min": 0,
+      "max": 9007199254740991,
+      "step": 1,
+      "options": [],
+      "bind_prompt": null,
+      "random_enabled": true
+    }
+  ],
+  "mini_cards": {
+    "prompt": {
+      "x": 24,
+      "y": 30
+    },
+    "image": {
+      "x": 24,
+      "y": 210
+    },
+    "custom": {
+      "x": 280,
+      "y": 78
+    },
+    "output": {
+      "x": 540,
+      "y": 120
+    }
+  }
+}

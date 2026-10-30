@@ -1,0 +1,102 @@
+{
+  "title": "细节精修 · 保留原结构",
+  "fields": [
+    {
+      "id": "f_image",
+      "node": "10",
+      "input": "image",
+      "name": "原图",
+      "type": "image",
+      "default": "",
+      "min": null,
+      "max": null,
+      "step": null,
+      "options": [],
+      "bind_prompt": null
+    },
+    {
+      "id": "f_mask",
+      "node": "11",
+      "input": "image",
+      "name": "蒙版（白=精修区）",
+      "type": "image",
+      "default": "",
+      "min": null,
+      "max": null,
+      "step": null,
+      "options": [],
+      "bind_prompt": null
+    },
+    {
+      "id": "f_prompt",
+      "node": "4",
+      "input": "text",
+      "name": "提示词",
+      "type": "textarea",
+      "default": "",
+      "min": null,
+      "max": null,
+      "step": null,
+      "options": [],
+      "bind_prompt": true
+    },
+    {
+      "id": "f_denoise",
+      "node": "7",
+      "input": "denoise",
+      "name": "精修强度",
+      "type": "number",
+      "default": 0.45,
+      "min": 0.15,
+      "max": 0.9,
+      "step": 0.05,
+      "options": [],
+      "bind_prompt": null
+    },
+    {
+      "id": "f_steps",
+      "node": "7",
+      "input": "steps",
+      "name": "步数",
+      "type": "number",
+      "default": 12,
+      "min": 1,
+      "max": 30,
+      "step": 1,
+      "options": [],
+      "bind_prompt": null
+    },
+    {
+      "id": "f_seed",
+      "node": "7",
+      "input": "seed",
+      "name": "随机种子",
+      "type": "number",
+      "default": 42,
+      "min": 0,
+      "max": 9007199254740991,
+      "step": 1,
+      "options": [],
+      "bind_prompt": null,
+      "random_enabled": true
+    }
+  ],
+  "mini_cards": {
+    "prompt": {
+      "x": 24,
+      "y": 30
+    },
+    "image": {
+      "x": 24,
+      "y": 210
+    },
+    "custom": {
+      "x": 280,
+      "y": 78
+    },
+    "output": {
+      "x": 540,
+      "y": 120
+    }
+  }
+}

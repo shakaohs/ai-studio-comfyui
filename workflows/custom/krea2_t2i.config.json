@@ -1,0 +1,89 @@
+{
+  "title": "文生图 · Krea2 Turbo",
+  "fields": [
+    {
+      "id": "f_prompt",
+      "node": "4",
+      "input": "text",
+      "name": "提示词",
+      "type": "textarea",
+      "default": "",
+      "min": null,
+      "max": null,
+      "step": null,
+      "options": [],
+      "bind_prompt": true
+    },
+    {
+      "id": "f_width",
+      "node": "6",
+      "input": "width",
+      "name": "宽",
+      "type": "number",
+      "default": 1368,
+      "min": 512,
+      "max": 2048,
+      "step": 8,
+      "options": [],
+      "bind_prompt": null
+    },
+    {
+      "id": "f_height",
+      "node": "6",
+      "input": "height",
+      "name": "高",
+      "type": "number",
+      "default": 768,
+      "min": 512,
+      "max": 2048,
+      "step": 8,
+      "options": [],
+      "bind_prompt": null
+    },
+    {
+      "id": "f_steps",
+      "node": "7",
+      "input": "steps",
+      "name": "步数",
+      "type": "number",
+      "default": 8,
+      "min": 1,
+      "max": 30,
+      "step": 1,
+      "options": [],
+      "bind_prompt": null
+    },
+    {
+      "id": "f_seed",
+      "node": "7",
+      "input": "seed",
+      "name": "随机种子",
+      "type": "number",
+      "default": 42,
+      "min": 0,
+      "max": 9007199254740991,
+      "step": 1,
+      "options": [],
+      "bind_prompt": null,
+      "random_enabled": true
+    }
+  ],
+  "mini_cards": {
+    "prompt": {
+      "x": 24,
+      "y": 30
+    },
+    "image": {
+      "x": 24,
+      "y": 210
+    },
+    "custom": {
+      "x": 280,
+      "y": 78
+    },
+    "output": {
+      "x": 540,
+      "y": 120
+    }
+  }
+}

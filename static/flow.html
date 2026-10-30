@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/static/images/logo.png" type="image/png">
+    <title>工作流 | Workflow Studio</title>
+    <script>
+        (function () {
+            try {
+                var theme = localStorage.getItem('studio_theme') || localStorage.getItem('canvas_theme') || 'light';
+                if (theme === 'dark') {
+                    document.documentElement.classList.add('studio-theme-dark');
+                    document.documentElement.classList.add('theme-dark');
+                }
+            } catch (e) { }
+        })();
+    </script>
+    <script src="/static/vendor/js/tailwindcss-cdn.js?v=2026.08.28.1793341124"></script>
+    <script src="/static/vendor/js/lucide.js?v=2026.08.28.1793341124"></script>
+    <script src="/static/js/theme.js?v=2026.08.28.1793341123"></script>
+    <script src="/static/js/i18n.js?v=2026.08.28.1793341123"></script>
+    <script src="/static/js/image-preview.js?v=2026.08.28.1793341123"></script>
+    <script src="/static/js/save-master.js?v=2026.08.28.1793341123"></script>
+    <script src="/static/js/asset-sidebar.js?v=2026.08.28.1793341123"></script>
+    <style>
+        :root {
+            --accent: #111827;
+            --bg: #f9fafb;
+            --card: #ffffff;
+            --line: #eef0f2;
+        }
+
+        *::-webkit-scrollbar { width: 10px !important; height: 10px !important; }
+        *::-webkit-scrollbar-track { background: transparent !important; }
+        *::-webkit-scrollbar-thumb { background-color: #d8d8d8 !important; border: 3px solid transparent !important; border-right-width: 5px !important; background-clip: padding-box !important; border-radius: 10px !important; }
+
+        body {
+            background: var(--bg);
+            color: var(--accent);
+            font-family: 'Inter', -apple-system, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            margin: 0;
+        }
+
+        .wrap { max-width: 1320px; margin: 0 auto; padding: 40px 40px 80px; }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 20px;
+        }
+
+        .nano-input {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            transition: border-color .25s ease, box-shadow .25s ease;
+            outline: none;
+            width: 100%;
+        }
+
+        .nano-input:focus { border-color: #000; box-shadow: 0 0 0 1px #000; }
+
+        .upload-box {
+            border: 1px dashed #e2e8f0;
+            border-radius: 14px;
+            background: var(--card);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all .3s ease;
+            aspect-ratio: 1/1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .upload-box:hover { border-color: #000; transform: translateY(-2px); }
+        .upload-box.drag-over { border-style: solid; border-color: #000; }
+
+        .upload-box img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+        .btn-main {
+            background: #000;
+            color: #fff;
+            border-radius: 14px;
+            transition: all .25s ease;
+        }
+
+        .btn-main:hover { background: #222; transform: translateY(-1px); }
+        .btn-main:disabled { background: #cbd5e1; cursor: not-allowed; transform: none; }
+
+        .chip {
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            padding: 3px 10px;
+            font-size: 10px;
+            font-weight: 700;
+            color: #9ca3af;
+        }
+
+        .result-frame {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 24px;
+            min-height: 520px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .spin {
+            width: 26px; height: 26px;
+            border: 2px solid #e5e7eb;
+            border-top-color: #000;
+            border-radius: 50%;
+            animation: sp 0.9s linear infinite;
+        }
+
+        @keyframes sp { to { transform: rotate(360deg); } }
+
+        html.studio-theme-dark {
+            --accent: #f3f4f6;
+            --bg: #0b0b0c;
+            --card: #151517;
+            --line: #262629;
+        }
+
+        html.studio-theme-dark .upload-box { border-color: #2a2a2e; }
+        html.studio-theme-dark .btn-main { background: #f3f4f6; color: #111; }
+        html.studio-theme-dark .nano-input:focus { border-color: #f3f4f6; box-shadow: 0 0 0 1px #f3f4f6; }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+        <header class="flex items-end justify-between mb-10">
+            <div>
+                <h1 class="text-3xl font-extrabold tracking-tighter italic">WORKFLOW</h1>
+                <p class="text-[10px] font-bold uppercase tracking-[0.4em] text-gray-400 mt-2">四视图 · 视频生成 · 修手 · 精修 · 超清</p>
+            </div>
+            <div class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                <span>ComfyUI</span>
+                <span id="statusDot" class="w-2 h-2 rounded-full bg-gray-300"></span>
+            </div>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <section class="lg:col-span-5 space-y-6">
+                <div class="space-y-2">
+                    <div class="flex items-center gap-2 text-gray-400">
+                        <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+                        <span class="text-[10px] font-black uppercase tracking-widest">Workflow</span>
+                    </div>
+                    <select id="wfSelect" class="nano-input px-4 py-3 text-sm font-bold"></select>
+                    <p id="wfMeta" class="text-[10px] text-gray-400 leading-relaxed"></p>
+                </div>
+
+                <div id="fieldHost" class="space-y-5"></div>
+
+                <button id="runBtn" class="btn-main w-full py-4 font-bold text-[11px] uppercase tracking-[0.25em] flex items-center justify-center gap-3">
+                    <i data-lucide="zap" class="w-4 h-4"></i>
+                    <span id="runText">运行工作流</span>
+                </button>
+            </section>
+
+            <section class="lg:col-span-7">
+                <div id="resultFrame" class="result-frame flex items-center justify-center p-6">
+                    <div class="text-center text-gray-300">
+                        <i data-lucide="image" class="w-7 h-7 mx-auto mb-3"></i>
+                        <p class="text-[10px] font-bold uppercase tracking-[0.3em]">等待生成</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const CLIENT_ID = 'flow_' + Math.random().toString(36).slice(2);
+        const state = { name: '', config: null, values: {}, uploads: {} };
+
+        const $ = (id) => document.getElementById(id);
+
+        function el(tag, cls, html) {
+            const n = document.createElement(tag);
+            if (cls) n.className = cls;
+            if (html !== undefined) n.innerHTML = html;
+            return n;
+        }
+
+        async function pingStatus() {
+            try {
+                const r = await fetch('/api/workflows');
+                $('statusDot').className = 'w-2 h-2 rounded-full ' + (r.ok ? 'bg-emerald-500' : 'bg-red-400');
+            } catch (e) {
+                $('statusDot').className = 'w-2 h-2 rounded-full bg-red-400';
+            }
+        }
+
+        async function loadList() {
+            const data = await fetch('/api/workflows').then(r => r.json());
+            const items = (data.workflows || []).filter(w => !w.builtin && !/LTXDirector/i.test(w.name));
+            const prefer = ['custom/minimax_h3_ref2video.json'];
+            items.sort((a, b) => {
+                const ia = prefer.indexOf(a.name), ib = prefer.indexOf(b.name);
+                if (ia !== -1 || ib !== -1) return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+                return a.title.localeCompare(b.title, 'zh');
+            });
+            $('wfSelect').innerHTML = items.map(w =>
+                `<option value="${w.name}">${w.title}（${w.field_count} 项参数）</option>`
+            ).join('');
+            if (items.length) {
+                $('wfSelect').value = items[0].name;
+                await loadWorkflow(items[0].name);
+            }
+        }
+
+        async function loadWorkflow(name) {
+            state.name = name;
+            state.values = {};
+            state.uploads = {};
+            $('fieldHost').innerHTML = '<div class="text-[10px] text-gray-400">加载中…</div>';
+            const path = name.split('/').map(encodeURIComponent).join('/');
+            const data = await fetch('/api/workflows/' + path).then(r => r.json());
+            state.config = data.config || { fields: [] };
+            $('wfMeta').textContent = (state.config.title || name) + ' · ' + (state.config.fields || []).length + ' 项参数 · 节点 ' + Object.keys(data.workflow || {}).length + ' 个';
+            renderFields();
+        }
+
+        function renderFields() {
+            const host = $('fieldHost');
+            host.innerHTML = '';
+            const fields = state.config.fields || [];
+            if (!fields.length) {
+                host.innerHTML = '<div class="text-[10px] text-gray-400">这个工作流没有可配置参数，直接点运行。</div>';
+                return;
+            }
+            // 图片字段并排，其余整行
+            let imageRow = null;
+            fields.forEach(f => {
+                if (f.type === 'image') {
+                    if (!imageRow) {
+                        const wrap = el('div', 'space-y-2');
+                        wrap.appendChild(el('div', 'flex items-center gap-2 text-gray-400',
+                            '<i data-lucide="image" class="w-3.5 h-3.5"></i><span class="text-[10px] font-black uppercase tracking-widest">Images</span>'));
+                        imageRow = el('div', 'grid grid-cols-3 gap-3');
+                        wrap.appendChild(imageRow);
+                        host.appendChild(wrap);
+                    }
+                    imageRow.appendChild(buildImageField(f));
+                    return;
+                }
+                if (f.type === 'textarea') {
+                    const box = el('div', 'space-y-2');
+                    box.appendChild(el('label', 'block text-[10px] font-black uppercase tracking-widest text-gray-400', f.name));
+                    const ta = el('textarea', 'nano-input px-4 py-3 text-sm resize-none');
+                    ta.rows = 5;
+                    ta.value = f.default || '';
+                    ta.oninput = () => state.values[f.id] = ta.value;
+                    state.values[f.id] = ta.value;
+                    box.appendChild(ta);
+                    host.appendChild(box);
+                    return;
+                }
+                if (f.type === 'dropdown') {
+                    const box = el('div', 'space-y-2');
+                    box.appendChild(el('label', 'block text-[10px] font-black uppercase tracking-widest text-gray-400', f.name));
+                    const sel = el('select', 'nano-input px-4 py-2.5 text-sm font-bold');
+                    (f.options || []).forEach(o => {
+                        const op = el('option', '', o);
+                        op.value = o;
+                        sel.appendChild(op);
+                    });
+                    sel.value = f.default;
+                    sel.onchange = () => state.values[f.id] = sel.value;
+                    state.values[f.id] = sel.value;
+                    box.appendChild(sel);
+                    host.appendChild(box);
+                    return;
+                }
+                // number
+                const box = el('div', 'space-y-2');
+                const head = el('div', 'flex items-center justify-between');
+                head.appendChild(el('label', 'text-[10px] font-black uppercase tracking-widest text-gray-400', f.name));
+                if (f.random_enabled) {
+                    const dice = el('button', 'text-[10px] font-bold text-gray-400 hover:text-black', '随机');
+                    dice.type = 'button';
+                    dice.onclick = () => {
+                        inp.value = Math.floor(Math.random() * 1000000000);
+                        state.values[f.id] = Number(inp.value);
+                    };
+                    head.appendChild(dice);
+                }
+                box.appendChild(head);
+                const inp = el('input', 'nano-input px-4 py-2.5 text-sm font-bold');
+                inp.type = 'number';
+                if (f.min !== null && f.min !== undefined) inp.min = f.min;
+                if (f.max !== null && f.max !== undefined) inp.max = f.max;
+                inp.step = f.step || 1;
+                inp.value = f.default;
+                inp.oninput = () => state.values[f.id] = Number(inp.value);
+                state.values[f.id] = Number(f.default);
+                box.appendChild(inp);
+                host.appendChild(box);
+            });
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function buildImageField(f) {
+            const box = el('div', 'upload-box');
+            box.innerHTML = `<i data-lucide="plus" class="w-5 h-5 text-gray-300"></i>
+                <span class="text-[9px] font-bold uppercase tracking-wider text-gray-400 px-2 text-center">${f.name}</span>`;
+            const input = el('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.className = 'hidden';
+            box.appendChild(input);
+
+            const setPreview = (src) => {
+                const old = box.querySelector('img');
+                if (old) old.remove();
+                const img = el('img');
+                img.src = src;
+                box.appendChild(img);
+            };
+
+            const upload = async (file) => {
+                if (!file) return;
+                setPreview(URL.createObjectURL(file));
+                const fd = new FormData();
+                fd.append('files', file);
+                try {
+                    const res = await fetch('/api/upload', { method: 'POST', body: fd });
+                    const data = await res.json();
+                    state.uploads[f.id] = data.files[0].comfy_name;
+                    state.values[f.id] = data.files[0].comfy_name;
+                } catch (e) {
+                    console.error('upload failed', e);
+                }
+            };
+
+            box.onclick = () => input.click();
+            input.onchange = () => upload(input.files[0]);
+            box.ondragover = (e) => { e.preventDefault(); box.classList.add('drag-over'); };
+            box.ondragleave = () => box.classList.remove('drag-over');
+            box.ondrop = (e) => {
+                e.preventDefault();
+                box.classList.remove('drag-over');
+                const file = e.dataTransfer.files && e.dataTransfer.files[0];
+                if (file) { upload(file); return; }
+                if (window.AssetSidebar) AssetSidebar.dropTo(e, upload);
+            };
+            if (!state.fieldUploads) state.fieldUploads = {};
+            state.fieldUploads[f.id] = upload;
+            return box;
+        }
+
+        function buildParams() {
+            const params = {};
+            (state.config.fields || []).forEach(f => {
+                const v = state.values[f.id];
+                if (v === undefined || v === null || v === '') return;
+                params[f.node] = params[f.node] || {};
+                params[f.node][f.input] = v;
+            });
+            return params;
+        }
+
+        function boundPrompt() {
+            const f = (state.config.fields || []).find(x => x.bind_prompt);
+            return f ? (state.values[f.id] || '') : '';
+        }
+
+        function showLoading(tag) {
+            const frame = $('resultFrame');
+            frame.innerHTML = '';
+            const box = el('div', 'text-center');
+            box.innerHTML = `<div class="spin mx-auto mb-4"></div>
+                <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-gray-400">${tag}</p>
+                <p id="elapsed" class="text-[10px] text-gray-300 mt-2">0.0s</p>`;
+            frame.appendChild(box);
+            const t0 = performance.now();
+            return setInterval(() => {
+                const e = $('elapsed');
+                if (e) e.textContent = ((performance.now() - t0) / 1000).toFixed(1) + 's';
+            }, 100);
+        }
+
+        function renderResult(data) {
+            const frame = $('resultFrame');
+            frame.innerHTML = '';
+            frame.className = 'result-frame p-4';
+
+            const images = data.images || [];
+            const videos = data.videos || [];
+
+            if (!images.length && !videos.length) {
+                frame.className = 'result-frame flex items-center justify-center p-6';
+                frame.innerHTML = `<div class="text-center text-gray-300">
+                    <p class="text-[10px] font-bold uppercase tracking-[0.3em]">没有输出</p>
+                    <p class="text-[10px] text-gray-400 mt-2">${data.error || '检查 ComfyUI 是否运行'}</p></div>`;
+                return;
+            }
+
+            const grid = el('div', 'grid grid-cols-1 gap-4');
+            images.forEach(src => {
+                const card = el('div', 'relative rounded-2xl overflow-hidden border border-gray-100 group');
+                const img = el('img', 'w-full h-auto block');
+                img.src = src;
+                card.appendChild(img);
+                const bar = el('div', 'absolute bottom-0 left-0 right-0 flex justify-end gap-2 p-3 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-t from-black/40 to-transparent');
+                const sv = el('button', 'px-3 py-1.5 rounded-full bg-white text-[10px] font-bold text-black', '保存');
+                sv.onclick = () => window.SaveMaster ? window.SaveMaster.save(src, { fallback: 'Workflow' }) : window.open(src, '_blank');
+                bar.appendChild(sv);
+                card.appendChild(bar);
+                grid.appendChild(card);
+            });
+
+            videos.forEach(src => {
+                const card = el('div', 'rounded-2xl overflow-hidden border border-gray-100');
+                const v = el('video', 'w-full h-auto block');
+                v.src = src;
+                v.controls = true;
+                v.autoplay = true;
+                v.loop = true;
+                v.playsInline = true;
+                card.appendChild(v);
+                grid.appendChild(card);
+            });
+
+            frame.appendChild(grid);
+        }
+
+        async function run() {
+            if (!state.name) return;
+            const btn = $('runBtn');
+            btn.disabled = true;
+            $('runText').textContent = '运行中…';
+            const timer = showLoading(state.config.title || '生成中');
+
+            try {
+                const payload = {
+                    prompt: boundPrompt(),
+                    workflow_json: state.name,
+                    type: 'flow',
+                    client_id: CLIENT_ID,
+                    params: buildParams()
+                };
+                const res = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                clearInterval(timer);
+                renderResult(data);
+            } catch (e) {
+                clearInterval(timer);
+                renderResult({ error: e.message });
+            } finally {
+                btn.disabled = false;
+                $('runText').textContent = '运行工作流';
+            }
+        }
+
+        $('wfSelect').onchange = (e) => loadWorkflow(e.target.value);
+        $('runBtn').onclick = run;
+
+        pingStatus();
+        loadList().then(() => { if (window.lucide) lucide.createIcons(); });
+
+        if (window.AssetSidebar) {
+            AssetSidebar.mount({
+                hint: '拖到工作流的图片输入框，或单击缩略图填入第一个图片字段',
+                onUse: function (item, file) {
+                    var fields = (state.config && state.config.fields) || [];
+                    var f = fields.filter(function (x) { return x.type === 'image'; })[0];
+                    if (!f) throw new Error('当前工作流没有图片字段');
+                    var fn = state.fieldUploads && state.fieldUploads[f.id];
+                    if (!fn) throw new Error('请先加载工作流');
+                    return fn(file);
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>

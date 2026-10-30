@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="studio-theme-dark theme-dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/static/images/logo.png" type="image/png">
+    <title>四视图 | Krea2 角色设定表</title>
+    <script>
+        (function () {
+            try {
+                var theme = localStorage.getItem('studio_theme') || localStorage.getItem('canvas_theme') || 'light';
+                if (theme === 'dark') {
+                    document.documentElement.classList.add('studio-theme-dark');
+                    document.documentElement.classList.add('theme-dark');
+                }
+            } catch (e) { }
+        })();
+    </script>
+    <script src="/static/vendor/js/tailwindcss-cdn.js?v=2026.08.28.1793341124"></script>
+    <script src="/static/vendor/js/lucide.js?v=2026.08.28.1793341124"></script>
+    <script src="/static/js/theme.js?v=2026.08.28.1793341123"></script>
+    <script src="/static/js/image-preview.js?v=2026.08.28.1793341123"></script>
+    <script src="/static/js/asset-sidebar.js?v=2026.08.28.1793341123"></script>
+    <style>
+        :root {
+            --accent: #111827;
+            --bg: #f9fafb;
+            --card: #ffffff;
+            --line: #eef0f2;
+        }
+
+        *::-webkit-scrollbar { width: 10px !important; height: 10px !important; }
+        *::-webkit-scrollbar-track { background: transparent !important; }
+        *::-webkit-scrollbar-thumb { background-color: #d8d8d8 !important; border: 3px solid transparent !important; border-right-width: 5px !important; background-clip: padding-box !important; border-radius: 10px !important; }
+
+        body {
+            background: var(--bg);
+            color: var(--accent);
+            font-family: 'Inter', -apple-system, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            margin: 0;
+        }
+
+        .wrap { max-width: 1320px; margin: 0 auto; padding: 40px 40px 80px; }
+        .card { background: var(--card); border: 1px solid var(--line); border-radius: 20px; }
+
+        .nano-input {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            transition: border-color .25s ease, box-shadow .25s ease;
+            outline: none;
+            width: 100%;
+        }
+
+        .nano-input:focus { border-color: #000; box-shadow: 0 0 0 1px #000; }
+
+        .upload-box {
+            border: 1px dashed #e2e8f0;
+            border-radius: 16px;
+            background: var(--card);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all .3s ease;
+            aspect-ratio: 3/4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .upload-box:hover { border-color: #000; transform: translateY(-2px); }
+        .upload-box.drag-over { border-style: solid; border-color: #000; }
+        .upload-box img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #f3f4f6; }
+        .upload-box .clear-btn {
+            position: absolute; top: 6px; right: 6px; z-index: 3;
+            width: 20px; height: 20px; border-radius: 999px;
+            background: rgba(0, 0, 0, .55); color: #fff;
+            font-size: 12px; line-height: 20px; text-align: center;
+            display: none; cursor: pointer;
+        }
+
+        .upload-box.filled .clear-btn { display: block; }
+
+        .btn-main {
+            background: #111827; color: #fff; border-radius: 16px;
+            transition: all .25s ease; border: none; cursor: pointer;
+        }
+
+        .btn-main:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(0, 0, 0, .16); }
+        .btn-main:disabled { opacity: .5; cursor: not-allowed; }
+
+        .btn-ghost {
+            background: transparent; border: 1px solid var(--line); border-radius: 12px;
+            cursor: pointer; transition: all .2s ease;
+        }
+
+        .btn-ghost:hover { border-color: #111827; }
+
+        .result-frame {
+            background: #f3f4f6; border: 1px solid var(--line); border-radius: 22px;
+            min-height: 520px;
+        }
+
+        .result-frame img.zoomable { cursor: zoom-in; }
+
+        .spin {
+            width: 28px; height: 28px; border-radius: 999px;
+            border: 2px solid #e5e7eb; border-top-color: #111827;
+            animation: sp 0.9s linear infinite;
+        }
+
+        @keyframes sp { to { transform: rotate(360deg); } }
+
+        .bar { height: 2px; background: #e5e7eb; border-radius: 999px; overflow: hidden; }
+        .bar > i { display: block; height: 100%; width: 40%; background: #111827; border-radius: 999px; animation: slide 1.6s ease-in-out infinite; }
+        @keyframes slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(300%); } }
+
+        .sec-title { display: flex; align-items: center; gap: 8px; color: #9ca3af; }
+        .sec-title span { font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: .18em; }
+        .hint { font-size: 9px; line-height: 1.7; color: #9ca3af; }
+        .hint b { color: #6b7280; }
+        .lbl { font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: .16em; color: #9ca3af; }
+        .canvas-tag {
+            font-size: 8px; font-weight: 800; letter-spacing: .08em;
+            color: #6b7280; background: #f3f4f6; border-radius: 5px;
+            padding: 1px 4px; margin-left: 4px; vertical-align: 1px;
+        }
+
+        details > summary { list-style: none; cursor: pointer; }
+        details > summary::-webkit-details-marker { display: none; }
+        details[open] .chev { transform: rotate(180deg); }
+        .chev { transition: transform .2s ease; }
+
+        /* 灯箱 */
+        #lightbox {
+            position: fixed; inset: 0; z-index: 9999; background: rgba(10, 10, 12, .92);
+            display: none; align-items: center; justify-content: center;
+        }
+        #lightbox.on { display: flex; }
+        #lbStage {
+            position: relative; width: 92vw; height: 88vh; overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+        }
+        #lbStage img { max-width: 100%; max-height: 100%; object-fit: contain; transform-origin: 0 0; }
+        #lbPill {
+            position: absolute; left: 50%; bottom: 6vh; transform: translateX(-50%);
+            font-size: 10px; font-weight: 800; letter-spacing: .12em; color: #fff;
+            background: rgba(0, 0, 0, .55); padding: 4px 10px; border-radius: 999px;
+            opacity: 0; transition: opacity .2s ease; pointer-events: none;
+        }
+        #lbClose {
+            position: absolute; top: 20px; right: 22px; width: 34px; height: 34px;
+            border-radius: 999px; border: 1px solid rgba(255, 255, 255, .25);
+            background: rgba(255, 255, 255, .08); color: #fff; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+        #lbClose:hover { background: rgba(255, 255, 255, .18); }
+
+        html.studio-theme-dark { --accent: #f3f4f6; --bg: #161618; --card: #1f1f22; --line: #2a2a2e; }
+        html.studio-theme-dark body { background: var(--bg); }
+        html.studio-theme-dark .nano-input { background: #1f1f22; color: #f3f4f6; border-color: #2a2a2e; }
+        html.studio-theme-dark .nano-input:focus { border-color: #f3f4f6; box-shadow: 0 0 0 1px #f3f4f6; }
+        html.studio-theme-dark .upload-box { border-color: #2a2a2e; }
+        html.studio-theme-dark .upload-box img { background: #111; }
+        html.studio-theme-dark .btn-main { background: #f3f4f6; color: #111; }
+        html.studio-theme-dark .result-frame { background: #1b1b1e; }
+        html.studio-theme-dark .bar { background: #2a2a2e; }
+        html.studio-theme-dark .bar > i { background: #f3f4f6; }
+        html.studio-theme-dark .spin { border-color: #2a2a2e; border-top-color: #f3f4f6; }
+        html.studio-theme-dark .canvas-tag { background: #26262a; color: #9ca3af; }
+        html.studio-theme-dark .btn-ghost:hover { border-color: #f3f4f6; }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+        <header class="flex items-end justify-between mb-10">
+            <div>
+                <h1 class="text-3xl font-extrabold tracking-tighter italic">CHARACTER SHEET</h1>
+                <p class="text-[10px] font-bold uppercase tracking-[0.35em] text-gray-400 mt-2">Krea2 四视图 · 一张参考图出角色设定表</p>
+            </div>
+            <div class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                <span>ComfyUI</span>
+                <span id="statusDot" class="w-2 h-2 rounded-full bg-gray-300"></span>
+            </div>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <!-- 左：参数 -->
+            <section class="lg:col-span-5 space-y-5">
+
+                <div class="card p-5 space-y-3">
+                    <div class="sec-title"><i data-lucide="user-square" class="w-3.5 h-3.5"></i><span>参考图（单张，正面半身最好）</span></div>
+                    <div class="grid gap-4 items-center" style="grid-template-columns:158px 1fr">
+                        <div id="refBox" class="upload-box">
+                            <i data-lucide="image-plus" class="w-5 h-5 text-gray-300"></i>
+                            <span class="text-[9px] font-bold uppercase tracking-wider text-gray-400">点击 / 拖入</span>
+                            <span class="clear-btn">×</span>
+                        </div>
+                        <div class="space-y-2">
+                            <p class="hint">一张清晰正脸即可。模型按这张的脸、发型、服装去画其他角度。</p>
+                            <p class="hint">参考图会缩到 <b>1024×1536</b> 再送模型（高级里可改），这张脸的细节全靠这个预算。</p>
+                            <p class="hint">能从素材库直接拖进来。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card p-5 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <div class="sec-title"><i data-lucide="type" class="w-3.5 h-3.5"></i><span>提示词</span></div>
+                        <div class="flex items-center gap-2">
+                            <span id="charCount" class="text-[9px] font-bold text-gray-400">0 字</span>
+                            <button id="tplBtn" class="btn-ghost px-2.5 py-1 text-[10px] font-bold text-gray-500">插入模板</button>
+                        </div>
+                    </div>
+                    <textarea id="prompt" rows="7" class="nano-input px-4 py-3 text-xs leading-relaxed resize-y"
+                        placeholder="Describe the sheet you want..."></textarea>
+                    <p class="hint">默认就是画布里的原句（<b>Convert the character in the image to a Character Sheet…</b>）。想控版式就自己加：几格、什么角度、什么背景。</p>
+                </div>
+
+                <div class="card p-5 space-y-4">
+                    <div class="sec-title"><i data-lucide="ratio" class="w-3.5 h-3.5"></i><span>画幅</span></div>
+                    <div class="space-y-1">
+                        <label class="lbl">版式预设</label>
+                        <select id="preset" class="nano-input px-3 py-2.5 text-xs font-bold"></select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="space-y-1">
+                            <label class="lbl">宽</label>
+                            <input id="width" type="number" min="256" max="3072" step="16" value="1536" class="nano-input px-3 py-2.5 text-sm font-bold">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="lbl">高</label>
+                            <input id="height" type="number" min="256" max="3072" step="16" value="1024" class="nano-input px-3 py-2.5 text-sm font-bold">
+                        </div>
+                    </div>
+                    <p id="sizeHint" class="hint"></p>
+                </div>
+
+                <div class="card p-5 space-y-4">
+                    <div class="sec-title"><i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i><span>采样</span></div>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="space-y-1">
+                            <label class="lbl">步数<span class="canvas-tag">10</span></label>
+                            <input id="steps" type="number" min="1" max="40" step="1" value="10" class="nano-input px-3 py-2.5 text-sm font-bold">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="lbl">CFG<span class="canvas-tag">1</span></label>
+                            <input id="cfg" type="number" min="0" max="10" step="0.1" value="1" class="nano-input px-3 py-2.5 text-sm font-bold">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="lbl">重绘<span class="canvas-tag">1</span></label>
+                            <input id="denoise" type="number" min="0.05" max="1" step="0.05" value="1" class="nano-input px-3 py-2.5 text-sm font-bold">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="space-y-1">
+                            <label class="lbl">采样器</label>
+                            <select id="sampler" class="nano-input px-3 py-2.5 text-xs font-bold"></select>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="lbl">调度器</label>
+                            <select id="scheduler" class="nano-input px-3 py-2.5 text-xs font-bold"></select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-[1fr_auto] gap-2 items-end">
+                        <div class="space-y-1">
+                            <label class="lbl">种子</label>
+                            <input id="seed" type="number" min="0" step="1" value="0" class="nano-input px-3 py-2.5 text-sm font-bold">
+                        </div>
+                        <button id="diceBtn" class="btn-ghost px-3 py-2.5 text-[10px] font-bold text-gray-500" title="换一个随机种子">
+                            <i data-lucide="dices" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                    <p class="hint">turbo 蒸馏模型：<b>8–12 步</b>就到位，再加步数基本是白烧时间；CFG 保持 1 才符合蒸馏口径。</p>
+                </div>
+
+                <details class="card p-5">
+                    <summary class="flex items-center justify-between">
+                        <div class="sec-title"><i data-lucide="settings-2" class="w-3.5 h-3.5"></i><span>高级：保真 / 接地 / LoRA</span></div>
+                        <i data-lucide="chevron-down" class="chev w-3.5 h-3.5 text-gray-400"></i>
+                    </summary>
+                    <div class="mt-4 space-y-4">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="space-y-1">
+                                <label class="lbl">四视图 LoRA<span class="canvas-tag">1.0</span></label>
+                                <input id="loraStrength" type="number" min="0" max="2" step="0.05" value="1" class="nano-input px-3 py-2.5 text-sm font-bold">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="lbl">参考保真 ref_boost<span class="canvas-tag">1.0</span></label>
+                                <input id="refBoost" type="number" min="0" max="4" step="0.05" value="1" class="nano-input px-3 py-2.5 text-sm font-bold">
+                            </div>
+                        </div>
+                        <p class="hint"><b>ref_boost</b> 是最直接的脸像不像旋钮：1.0 = 关；1.2–1.5 更贴参考（脸更准，但姿势/构图更死）；降到 0.8 以下会松到换人。</p>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="space-y-1">
+                                <label class="lbl">ref_boost_a</label>
+                                <input id="refBoostA" type="number" min="0" max="4" step="0.05" value="1" class="nano-input px-3 py-2.5 text-sm font-bold">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="lbl">fit_mode</label>
+                                <select id="fitMode" class="nano-input px-3 py-2.5 text-xs font-bold"></select>
+                            </div>
+                        </div>
+                        <p class="hint">单参考图时 <b>ref_boost_a 不生效</b>（它只管第一张参考）。fit_mode 用 <b>fit</b>；只有老权重才换 crop。</p>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="space-y-1">
+                                <label class="lbl">正向 grounding_px<span class="canvas-tag">0</span></label>
+                                <input id="groundPos" type="number" min="0" max="4096" step="64" value="0" class="nano-input px-3 py-2.5 text-sm font-bold">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="lbl">负向 grounding_px<span class="canvas-tag">768</span></label>
+                                <input id="groundNeg" type="number" min="0" max="4096" step="64" value="768" class="nano-input px-3 py-2.5 text-sm font-bold">
+                            </div>
+                        </div>
+                        <p class="hint">grounding_px = 喂给视觉编码器的长边上限，0 = 原生。正向 0、负向 768 是画布原设置；两个都调大更吃显存。</p>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="space-y-1">
+                                <label class="lbl">参考图宽<span class="canvas-tag">1024</span></label>
+                                <input id="refWidth" type="number" min="256" max="3072" step="16" value="1024" class="nano-input px-3 py-2.5 text-sm font-bold">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="lbl">参考图高<span class="canvas-tag">1536</span></label>
+                                <input id="refHeight" type="number" min="256" max="3072" step="16" value="1536" class="nano-input px-3 py-2.5 text-sm font-bold">
+                            </div>
+                        </div>
+                        <p class="hint">参考图会被 lanczos 缩到这个尺寸再送模型。走的是 pixel path（vae + source_image 都接），所以它只决定参考像素预算，不影响输出画幅。</p>
+                        <div class="space-y-1">
+                            <label class="lbl">system_prompt（留空 = 训练默认）</label>
+                            <textarea id="systemPrompt" rows="2" class="nano-input px-3 py-2 text-[11px] leading-relaxed resize-y" placeholder="Describe the image by detailing the color, shape, size..."></textarea>
+                        </div>
+                        <button id="resetBtn" class="btn-ghost w-full py-2.5 text-[10px] font-bold uppercase tracking-widest text-gray-500">重置为画布原值</button>
+                    </div>
+                </details>
+
+                <div class="flex gap-3">
+                    <button id="runBtn" class="btn-main flex-1 py-4 font-bold text-[11px] uppercase tracking-[0.25em] flex items-center justify-center gap-3">
+                        <i data-lucide="zap" class="w-4 h-4"></i><span id="runText">生成四视图</span>
+                    </button>
+                    <button id="cancelBtn" class="btn-ghost px-5 py-4 text-[11px] font-bold uppercase tracking-widest text-gray-500 hidden">取消</button>
+                </div>
+            </section>
+
+            <!-- 右：结果 -->
+            <section class="lg:col-span-7">
+                <div id="resultFrame" class="result-frame flex items-center justify-center p-6">
+                    <div class="text-center text-gray-300">
+                        <i data-lucide="layout-grid" class="w-7 h-7 mx-auto mb-3"></i>
+                        <p class="text-[10px] font-bold uppercase tracking-[0.3em]">等待生成</p>
+                    </div>
+                </div>
+                <div id="metaBar" class="mt-4 text-[10px] font-mono text-gray-400 leading-relaxed"></div>
+
+                <details class="card mt-4 p-5">
+                    <summary class="flex items-center justify-between">
+                        <div class="sec-title"><i data-lucide="table-2" class="w-3.5 h-3.5"></i><span>参数 ↔ 画布节点对照</span></div>
+                        <i data-lucide="chevron-down" class="chev w-3.5 h-3.5 text-gray-400"></i>
+                    </summary>
+                    <div class="mt-4 overflow-x-auto">
+                        <table class="w-full text-[10px] leading-relaxed" style="border-collapse:collapse">
+                            <thead>
+                                <tr class="text-gray-400 text-left">
+                                    <th class="py-1 pr-3 font-black uppercase tracking-wider">参数</th>
+                                    <th class="py-1 pr-3 font-black uppercase tracking-wider">画布节点</th>
+                                    <th class="py-1 font-black uppercase tracking-wider">原值</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mapBody" class="text-gray-600"></tbody>
+                        </table>
+                    </div>
+                    <p class="hint mt-3">节点编号与 ComfyUI 画布一一对应，出问题可以直接在画布里对着找。改动界面上没列出的东西（模型、VAE、连线）需要回画布改。</p>
+                </details>
+            </section>
+        </main>
+    </div>
+
+    <!-- 灯箱：必须挂到 <html> 下，否则 theme.js 的界面缩放（body transform）会让 fixed 失效 -->
+    <div id="lightbox">
+        <div id="lbStage">
+            <img id="lbImg" alt="">
+            <span id="lbPill">1.0x</span>
+        </div>
+        <button id="lbClose" title="关闭" aria-label="关闭">
+            <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+    </div>
+
+    <script>
+        const $ = (id) => document.getElementById(id);
+        const state = { ref: '', refUrl: '', job: null, timer: null, options: null, zoomer: null };
+
+        function el(tag, cls, html) {
+            const n = document.createElement(tag);
+            if (cls) n.className = cls;
+            if (html !== undefined) n.innerHTML = html;
+            return n;
+        }
+
+        /* ---------- 参考图 ---------- */
+        function bindRefBox() {
+            const box = $('refBox');
+            const input = el('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.className = 'hidden';
+            box.appendChild(input);
+
+            const setPreview = (src) => {
+                const old = box.querySelector('img');
+                if (old) old.remove();
+                const img = el('img');
+                img.src = src;
+                box.appendChild(img);
+                box.classList.add('filled');
+            };
+
+            const upload = async (file) => {
+                if (!file) return;
+                state.refUrl = URL.createObjectURL(file);
+                setPreview(state.refUrl);
+                try {
+                    const fd = new FormData();
+                    fd.append('files', file);
+                    const res = await fetch('/api/upload', { method: 'POST', body: fd });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.detail || ('HTTP ' + res.status));
+                    state.ref = data.files[0].comfy_name;
+                } catch (e) {
+                    state.ref = '';
+                    alert('上传失败：' + e.message);
+                }
+            };
+
+            box.querySelector('.clear-btn').onclick = (e) => {
+                e.stopPropagation();
+                state.ref = '';
+                const img = box.querySelector('img');
+                if (img) img.remove();
+                box.classList.remove('filled');
+            };
+            box.onclick = () => input.click();
+            input.onchange = () => upload(input.files[0]);
+            box.ondragover = (e) => { e.preventDefault(); box.classList.add('drag-over'); };
+            box.ondragleave = () => box.classList.remove('drag-over');
+            box.ondrop = (e) => {
+                e.preventDefault();
+                box.classList.remove('drag-over');
+                const f = e.dataTransfer.files && e.dataTransfer.files[0];
+                if (f) { upload(f); return; }
+                if (window.AssetSidebar) AssetSidebar.dropTo(e, upload);
+            };
+            state.upload = upload;
+        }
+
+        /* ---------- 画幅联动 ---------- */
+        function syncPreset() {
+            const w = parseInt($('width').value) || 0;
+            const h = parseInt($('height').value) || 0;
+            const hit = (state.options.presets || []).find(p => p.w === w && p.h === h);
+            $('preset').value = hit ? hit.key : '__custom__';
+            refreshHint();
+        }
+
+        function applyPreset() {
+            const key = $('preset').value;
+            const p = (state.options.presets || []).find(x => x.key === key);
+            if (p) { $('width').value = p.w; $('height').value = p.h; }
+            refreshHint();
+        }
+
+        function refreshHint() {
+            const w = parseInt($('width').value) || 0;
+            const h = parseInt($('height').value) || 0;
+            const mp = (w * h / 1048576).toFixed(2);
+            const p = (state.options.presets || []).find(x => x.w === w && x.h === h);
+            $('sizeHint').innerHTML = `实际输出 <b>${w} × ${h}</b>（${mp} MP）` +
+                (p ? ` · ${p.note}` : ' · 自定义');
+            $('charCount').textContent = ($('prompt').value || '').length + ' 字';
+        }
+
+        /* ---------- 提交与轮询 ---------- */
+        function payload() {
+            return {
+                image: state.ref,
+                prompt: $('prompt').value,
+                width: parseInt($('width').value) || 1536,
+                height: parseInt($('height').value) || 1024,
+                ref_width: parseInt($('refWidth').value) || 1024,
+                ref_height: parseInt($('refHeight').value) || 1536,
+                steps: parseInt($('steps').value) || 10,
+                cfg: parseFloat($('cfg').value),
+                sampler: $('sampler').value,
+                scheduler: $('scheduler').value,
+                denoise: parseFloat($('denoise').value),
+                seed: parseInt($('seed').value) || null,
+                lora_strength: parseFloat($('loraStrength').value),
+                ref_boost: parseFloat($('refBoost').value),
+                ref_boost_a: parseFloat($('refBoostA').value),
+                fit_mode: $('fitMode').value,
+                ground_pos: parseInt($('groundPos').value) || 0,
+                ground_neg: parseInt($('groundNeg').value) || 0,
+                system_prompt: $('systemPrompt').value
+            };
+        }
+
+        async function run() {
+            if (!state.ref) { alert('先放一张参考图'); return; }
+            if (!$('prompt').value.trim()) { alert('提示词不能为空'); return; }
+
+            $('runBtn').disabled = true;
+            $('runText').textContent = '提交中';
+            $('cancelBtn').classList.remove('hidden');
+            showLoading();
+
+            try {
+                const r = await fetch('/api/quad/run', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload())
+                });
+                const d = await r.json();
+                if (!r.ok) throw new Error(d.detail || ('HTTP ' + r.status));
+                state.job = d.job;
+                $('seed').value = d.seed;
+                $('metaBar').textContent = `种子 ${d.seed} · ${d.info.width}×${d.info.height} · ${d.info.steps} 步 · CFG ${d.info.cfg}`;
+                poll();
+            } catch (e) {
+                resetRunButton();
+                showError(e.message);
+            }
+        }
+
+        function resetRunButton() {
+            $('runBtn').disabled = false;
+            $('runText').textContent = '生成四视图';
+            $('cancelBtn').classList.add('hidden');
+        }
+
+        function showLoading() {
+            const frame = $('resultFrame');
+            frame.className = 'result-frame flex items-center justify-center p-6';
+            frame.innerHTML = `<div class="w-full max-w-sm text-center">
+                <div class="spin mx-auto mb-4"></div>
+                <p id="stageText" class="text-[10px] font-bold uppercase tracking-[0.3em] text-gray-400">排队中</p>
+                <p id="elapsedText" class="text-[10px] text-gray-300 mt-2 font-mono">0.0s</p>
+                <div class="bar mt-4"><i></i></div>
+            </div>`;
+        }
+
+        function showError(msg) {
+            const frame = $('resultFrame');
+            frame.className = 'result-frame flex items-center justify-center p-8';
+            frame.innerHTML = `<div class="max-w-md text-center">
+                <i data-lucide="alert-triangle" class="w-6 h-6 mx-auto mb-3 text-red-400"></i>
+                <p class="text-[11px] font-bold text-red-500 leading-relaxed break-words" style="white-space:pre-wrap">${msg}</p>
+            </div>`;
+            if (window.lucide) lucide.createIcons();
+        }
+
+        async function poll() {
+            clearTimeout(state.timer);
+            if (!state.job) return;
+            try {
+                const d = await fetch('/api/quad/status/' + state.job).then(r => r.json());
+                if (d.state === 'done') return renderDone(d);
+                if (d.state === 'error') return finishWithError(d.error || '生成失败');
+                if (d.state === 'canceled') return finishWithError('已取消');
+                const st = $('stageText');
+                if (st) {
+                    st.textContent = d.state === 'queued'
+                        ? ('排队中 · 第 ' + (d.position || 1) + ' 位')
+                        : (d.state === 'running' ? '采样中' : '模型加载中');
+                }
+                const ev = $('elapsedText');
+                if (ev) ev.textContent = (d.elapsed || 0).toFixed(1) + 's';
+                state.timer = setTimeout(poll, 2000);
+            } catch (e) {
+                state.timer = setTimeout(poll, 3500);
+            }
+        }
+
+        function finishWithError(msg) {
+            clearTimeout(state.timer);
+            state.job = null;
+            resetRunButton();
+            showError(msg);
+        }
+
+        function renderDone(d) {
+            clearTimeout(state.timer);
+            state.job = null;
+            $('runBtn').disabled = false;
+            $('runText').textContent = '再生成一张';
+            $('cancelBtn').classList.add('hidden');
+
+            const frame = $('resultFrame');
+            frame.className = 'result-frame p-3 flex items-center justify-center';
+            frame.innerHTML = '';
+            const url = (d.images || [])[0];
+            if (url) {
+                const img = el('img', 'zoomable w-full h-auto rounded-2xl block');
+                img.src = url;
+                img.onclick = () => openLightbox(url);
+                frame.appendChild(img);
+            } else {
+                frame.innerHTML = '<p class="text-[11px] text-gray-400">生成完成，但没有图片输出</p>';
+            }
+
+            const meta = [];
+            meta.push(`耗时 ${(d.elapsed || 0).toFixed(1)}s`);
+            if (d.info) meta.push(`${d.info.width}×${d.info.height}（${d.info.megapixels}MP）· ${d.info.steps} 步 · CFG ${d.info.cfg} · ref_boost ${d.info.ref_boost}`);
+            meta.push(`种子 ${$('seed').value}`);
+            $('metaBar').innerHTML = meta.join(' · ') +
+                (url ? ` · <a href="${url}" download class="underline">下载</a>` : '');
+        }
+
+        async function cancel() {
+            if (!state.job) return;
+            try { await fetch('/api/quad/cancel/' + state.job, { method: 'POST' }); } catch (e) { }
+            finishWithError('已取消');
+        }
+
+        /* ---------- 灯箱（滚轮缩放 + 拖动 + 双击复位）---------- */
+        function openLightbox(url) {
+            const box = window.StudioImagePreview ? StudioImagePreview.lift('lightbox') : $('lightbox');
+            $('lbImg').src = url;
+            box.classList.add('on');
+            if (window.StudioImagePreview) {
+                state.zoomer = StudioImagePreview.attach($('lbStage'), {
+                    img: $('lbImg'), minZoom: 1, maxZoom: 8
+                });
+            }
+        }
+
+        function closeLightbox() {
+            $('lightbox').classList.remove('on');
+            if (state.zoomer) { state.zoomer.reset(); state.zoomer = null; }
+        }
+
+        /* ---------- 初始化 ---------- */
+        const CANVAS_DEFAULTS = {
+            prompt: 'Convert the character in the image to a Character Sheet showing a face close-up, front full body, side full body and back full body views',
+            width: 1536, height: 1024, ref_width: 1024, ref_height: 1536,
+            steps: 10, cfg: 1, denoise: 1, sampler: 'euler', scheduler: 'simple',
+            lora_strength: 1, ref_boost: 1, ref_boost_a: 1, fit_mode: 'fit',
+            ground_pos: 0, ground_neg: 768
+        };
+
+        function applyDefaults(d) {
+            $('prompt').value = d.prompt;
+            $('width').value = d.width;
+            $('height').value = d.height;
+            $('refWidth').value = d.ref_width;
+            $('refHeight').value = d.ref_height;
+            $('steps').value = d.steps;
+            $('cfg').value = d.cfg;
+            $('denoise').value = d.denoise;
+            $('sampler').value = d.sampler;
+            $('scheduler').value = d.scheduler;
+            $('loraStrength').value = d.lora_strength;
+            $('refBoost').value = d.ref_boost;
+            $('refBoostA').value = d.ref_boost_a;
+            $('fitMode').value = d.fit_mode;
+            $('groundPos').value = d.ground_pos;
+            $('groundNeg').value = d.ground_neg;
+            $('systemPrompt').value = '';
+            syncPreset();
+        }
+
+        /* ---------- 参数对照表 ---------- */
+        const PARAM_MAP = [
+            ['参考图（单张）', '17 LoadImage', '—'],
+            ['提示词', '24 Krea2EditGroundedEncode · prompt', '默认英文句'],
+            ['输出宽 × 高', '7 EmptySD3LatentImage', '1536 × 1024'],
+            ['步数 / CFG / 重绘', '14 KSampler', '10 / 1 / 1'],
+            ['采样器 / 调度器', '14 KSampler', 'euler / simple'],
+            ['种子', '14 KSampler · seed', '每次随机'],
+            ['四视图 LoRA 强度', '16 LoraLoaderModelOnly', '1.0'],
+            ['ref_boost（参考保真）', '23 Krea2EditModelPatch', '1.0 = 关'],
+            ['ref_boost_a', '23 Krea2EditModelPatch', '1.0（单参考无效）'],
+            ['fit_mode', '23 Krea2EditModelPatch', 'fit（像素路径）'],
+            ['正向 grounding_px', '24 Krea2EditGroundedEncode', '0 = 原生'],
+            ['负向 grounding_px', '22 Krea2EditGroundedEncode', '768'],
+            ['参考图宽 / 高', '18 ImageResizeKJv2', '1024 × 1536'],
+            ['system_prompt', '24 Krea2EditGroundedEncode', '空 = 训练默认'],
+            ['模型 / VAE / LoRA 文件', '25 / 21 / 9 / 16', '固定，界面不开放']
+        ];
+
+        function renderMap() {
+            $('mapBody').innerHTML = PARAM_MAP.map(function (r) {
+                return '<tr style="border-top:1px solid var(--line)">'
+                    + '<td class="py-1.5 pr-3 font-bold">' + r[0] + '</td>'
+                    + '<td class="py-1.5 pr-3 font-mono text-[9px]">' + r[1] + '</td>'
+                    + '<td class="py-1.5 whitespace-nowrap">' + r[2] + '</td>'
+                    + '</tr>';
+            }).join('');
+        }
+
+        async function boot() {
+            bindRefBox();
+            renderMap();
+            $('preset').innerHTML = '<option value="__custom__">自定义</option>';
+            try {
+                const o = await fetch('/api/quad/options').then(r => r.json());
+                state.options = o;
+                $('preset').innerHTML = o.presets.map(p => `<option value="${p.key}">${p.key} · ${p.w}×${p.h}</option>`).join('')
+                    + '<option value="__custom__">自定义</option>';
+                $('sampler').innerHTML = o.samplers.map(s => `<option>${s}</option>`).join('');
+                $('scheduler').innerHTML = o.schedulers.map(s => `<option>${s}</option>`).join('');
+                $('fitMode').innerHTML = o.fit_modes.map(s => `<option>${s}</option>`).join('');
+                applyDefaults(o.defaults);
+                $('statusDot').className = 'w-2 h-2 rounded-full bg-emerald-500';
+            } catch (e) {
+                applyDefaults(CANVAS_DEFAULTS);
+                $('sampler').innerHTML = '<option>euler</option>';
+                $('scheduler').innerHTML = '<option>simple</option>';
+                $('fitMode').innerHTML = '<option>fit</option><option>crop (legacy)</option>';
+                $('statusDot').className = 'w-2 h-2 rounded-full bg-red-400';
+            }
+            $('seed').value = Math.floor(Math.random() * 2147483647);
+
+            $('preset').onchange = applyPreset;
+            ['width', 'height'].forEach(id => {
+                $(id).addEventListener('input', syncPreset);
+                $(id).addEventListener('change', syncPreset);
+            });
+            $('prompt').addEventListener('input', refreshHint);
+            $('diceBtn').onclick = () => { $('seed').value = Math.floor(Math.random() * 2147483647); };
+            $('resetBtn').onclick = () => applyDefaults((state.options && state.options.defaults) || CANVAS_DEFAULTS);
+            $('runBtn').onclick = run;
+            $('cancelBtn').onclick = cancel;
+            $('lbClose').onclick = closeLightbox;
+            $('lightbox').onclick = (e) => { if (e.target.id === 'lightbox' || e.target.id === 'lbStage') closeLightbox(); };
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && $('lightbox').classList.contains('on')) closeLightbox();
+            });
+            $('tplBtn').onclick = () => {
+                const ta = $('prompt');
+                if (ta.value.trim() && ta.value.trim() !== CANVAS_DEFAULTS.prompt && !confirm('会覆盖当前提示词，继续？')) return;
+                ta.value = 'Character sheet / turnaround of the character in the image: one row of four full-body views '
+                    + '(front, three-quarter, side, back) plus one face close-up panel. Identical face, hairstyle, outfit, '
+                    + 'body proportions and color scheme in every view. Neutral light grey seamless background, even soft '
+                    + 'studio light, flat even exposure, no dramatic shadows. Orthographic camera, eye level, consistent scale, '
+                    + 'full body head-to-toe uncropped, generous margins. No text, no watermark, no extra characters, no props.';
+                refreshHint();
+            };
+
+            if (window.lucide) lucide.createIcons();
+            if (window.AssetSidebar) {
+                AssetSidebar.mount({
+                    hint: '拖进参考图格子，或单击缩略图直接填入',
+                    onUse: function (item, file) {
+                        if (state.upload) state.upload(file);
+                        return null;
+                    }
+                });
+            }
+        }
+
+        boot();
+    </script>
+</body>
+
+</html>

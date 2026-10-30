@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+*.pyo
+*.bak*
+logs/
+output/
+assets/
+python/
+packages/
+history.json
+history.json.bak*
+*.zip
+*.log
+.DS_Store
+.env
+API/.env
